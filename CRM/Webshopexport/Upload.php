@@ -1,0 +1,95 @@
+<?php
+
+class CRM_Webshopexport_Upload {
+  private $localFile;
+  private $method;
+  private $user;
+  private $password;
+  private $url;
+  private $remotePath;
+  private $error;
+
+  /**
+   * CRM_Webshopexport_Upload constructor.
+   *
+   * @param $localFile (pass full path and filename)
+   * @param string $method (defaults to sftp)
+   *
+   * @throws \Exception
+   */
+  function __construct($localFile, $method='sftp') {
+    if (!file_exists($localFile)) {
+      throw new Exception ('File does not exist!');
+    }
+    $this->localFile = $localFile;
+    $this->method = $method;
+  }
+
+  /**
+   * Set user credentials for remote server (must be called before setServer)
+   * @param $user
+   * @param $password
+   */
+  function setCredentials($user, $password) {
+    $this->user = $user;
+    $this->password = $password;
+  }
+
+  /**
+   * Set remote server url and path.  You can pass in a url like sftp://user:password@host.com or just host.com
+   *  If you just pass in 'host.com' the method, username and password will be added automatically.
+   * @param $host
+   * @param $path
+   */
+  function setServer($host, $path) {
+    // Prefix host with uri.
+    if (strpos($host,'://') === FALSE) {
+      switch ($this->method) {
+        case 'sftp':
+        default:
+          $host = 'sftp://' . $this->user . ':' . $this->password . '@' . $host;
+      }
+    }
+    if (substr($host, -1) != '/') {
+      $host = $host . '/';
+    }
+    $this->url = $host;
+
+    $this->remotePath = $path;
+  }
+
+  /**
+   * The actual upload function.
+   * @return int: This is the error code from curl, 0 is success!  Anything else is failure
+   */
+  function upload() {
+    $ch = curl_init();
+    $localfile = $this->localFile;
+    $fp = fopen($localfile, 'r');
+    curl_setopt($ch, CURLOPT_URL, $this->url.$this->remotePath);
+    curl_setopt($ch, CURLOPT_UPLOAD, 1);
+    switch ($this->method) {
+      case 'sftp':
+      default:
+      curl_setopt($ch, CURLOPT_PROTOCOLS, CURLPROTO_SFTP);
+    }
+    curl_setopt($ch, CURLOPT_INFILE, $fp);
+    curl_setopt($ch, CURLOPT_INFILESIZE, filesize($localfile));
+    curl_exec ($ch);
+    $error_no = curl_errno($ch);
+    curl_close ($ch);
+
+    if ($error_no == 0) {
+      $this->error = 'File uploaded succesfully.';
+    } else {
+      $this->error = 'File upload error.';
+    }
+
+    return $error_no;
+  }
+
+  function getErrorMessage() {
+    return $this->error;
+  }
+
+}
