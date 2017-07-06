@@ -26,22 +26,6 @@ function customexport_civicrm_xmlMenu(&$files) {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_install
  */
 function customexport_civicrm_install() {
-  // Create a "Webshop Order" activity type
-  // See if we already have this type
-  $activityName = customexport_activityName();
-  $activity = civicrm_api3('OptionValue', 'get', array(
-    'option_group_id' => "activity_type",
-    'name' => $activityName,
-  ));
-  if (empty($activity['count'])) {
-    $activityParams = array(
-      'option_group_id' => "activity_type",
-      'name' => $activityName,
-      'description' => $activityName
-    );
-    $activityType = civicrm_api3('OptionValue', 'Create', $activityParams);
-  }
-
   _customexport_civix_civicrm_install();
 }
 
@@ -51,6 +35,7 @@ function customexport_civicrm_install() {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_postInstall
  */
 function customexport_civicrm_postInstall() {
+  CRM_Customexport_Webshop::install();
   _customexport_civix_civicrm_postInstall();
 }
 
@@ -136,8 +121,4 @@ function customexport_civicrm_angularModules(&$angularModules) {
  */
 function customexport_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
   _customexport_civix_civicrm_alterSettingsFolders($metaDataFolders);
-}
-
-function customexport_activityName() {
-  return 'Webshop Order';
 }

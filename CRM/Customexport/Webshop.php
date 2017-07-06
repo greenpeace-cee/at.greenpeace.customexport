@@ -3,22 +3,68 @@
 class CRM_Customexport_Webshop {
 
   private $_activities = array();
-  protected $csvFilename;
+  private $localFilePath; // Path where files are stored locally
 
   private $_exportComplete = FALSE; // Set to true once we've successfully exported
-  private $_uploadComplete = FALSE; // Set to true once we've successfully uploaded the csv export
   private $settings;
+  private $customFields;
 
-  function __construct() {
-    getExportSettings();
+  const ACTIVITY_NAME = 'Webshop Order';
+
+  static function install() {
+    // Create a "Webshop Order" activity type
+    // See if we already have this type
+    $activity = civicrm_api3('OptionValue', 'get', array(
+      'option_group_id' => "activity_type",
+      'name' => self::ACTIVITY_NAME,
+    ));
+    if (empty($activity['count'])) {
+      $activityParams = array(
+        'option_group_id' => "activity_type",
+        'name' => self::ACTIVITY_NAME,
+        'description' => self::ACTIVITY_NAME
+      );
+      $activityType = civicrm_api3('OptionValue', 'Create', $activityParams);
+    }
   }
 
+  function __construct() {
+    if (!$this->getExportSettings()) {
+      throw new Exception('Could not load get webshopExports settings - did you define a default value?');
+    };
+    $this->getCustomFields();
+    $this->localFilePath = sys_get_temp_dir(); // FIXME: May want to change path
+  }
+
+  /**
+   * Get the metadata for all the custom fields in the group webshop_information
+   */
+  private function getCustomFields() {
+    $customFields = civicrm_api3('CustomField', 'get', array(
+      'custom_group_id' => "webshop_information",
+    ));
+    // Store by name so we can find them easily later
+    foreach ($customFields['values'] as $key => $values) {
+      $this->customFields[$values['name']] = $values;
+    }
+  }
+
+  /**
+   * Get the settings for webshopExports
+   * This defines the list of files to export and where they should be sent
+   */
   private function getExportSettings() {
     // This is an array of exports:
     // order_type => optionvalue_id(order_type),
-    // file => csv file name (eg. export.csv),
+    // file => csv file name (eg. export),
     // remote => remote server (eg. sftp://user:pass@server.com/dir/)
     $this->settings = json_decode(CRM_Customexport_Utils::getSettings('webshopExports'));
+    foreach ($this->settings['order_type'] as $orderType) {
+      if ($orderType == 'default') {
+        return TRUE;
+      }
+    }
+    return FALSE;
   }
   /**
    * Export all webshop activities
@@ -51,17 +97,11 @@ class CRM_Customexport_Webshop {
     // order_exported = No
 
     $this->activityTypeId = CRM_Core_PseudoConstant::getKey('CRM_Activity_BAO_Activity', 'activity_type_id', webshopexport_activityName());
-    $this->paymentReceivedField = civicrm_api3('CustomField', 'getsingle', array(
-      'name' => "payment_received",
-    ));
-    $this->orderExportedField = civicrm_api3('CustomField', 'getsingle', array(
-      'name' => "order_exported",
-    ));
 
     $activities = civicrm_api3('Activity', 'get', array(
       'activity_type_id' => $this->activityTypeId,
-      'custom_'.$this->paymentReceivedField['id'] => 1,
-      'custom_'.$this->orderExportedField['id'] => 0,
+      'custom_'.$this->customFields['payment_received']['id'] => 1,
+      'custom_'.$this->customFields['order_exported']['id'] => 0,
     ));
 
     if (empty($activities['is_error']) && ($activities['count'] > 0)) {
@@ -73,20 +113,55 @@ class CRM_Customexport_Webshop {
 
   /**
    * Export the activities array to csv file
+   * We export each order_type based on what we find in settings
+   * If default is specified in settings we export all order_types that are not listed separately using this type.
    */
   private function exportToCSV() {
     // Write to a csv file in tmp dir
     $date = new DateTime();
-    $file = sys_get_temp_dir() . '/webshopexport_' . $date->format('YmdHisu').'.csv';
-    $this->csvFilename = $file;
 
-    $csvHeader = 'id,date';
-    file_put_contents($file, $csvHeader.PHP_EOL, FILE_APPEND | LOCK_EX);
+    // order_type => optionvalue_id(order_type),
+    // file => csv file name (eg. export),
+    // remote => remote server (eg. sftp://user:pass@server.com/dir/)
+    foreach ($this->settings as $setting) {
+      $this->files[$setting['order_type']] = $setting;
+      $this->files[$setting['order_type']]['outfile'] = $this->localFilePath . '/' . $setting['file'] . '_' . $date->format('YmdHisu'). '.csv';
+      $this->files[$setting['order_type']]['hasContent'] = FALSE; // Set to TRUE once header is written
+    }
 
+    // Load and cache all contact IDs before we export, so we don't do multiple lookups for the same contact.
+    $sourceContacts = array();
     foreach($this->_activities as $id => $activity) {
-      // Build fields string
-      $csv = $id.','.$activity['activity_date_time'];
-      file_put_contents($file, $csv.PHP_EOL, FILE_APPEND | LOCK_EX);
+      if (!array_key_exists($sourceContacts[$activity['source_contact_id']])) {
+        $sourceContacts[$activity['source_contact_id']] = civicrm_api3('Contact', 'getsingle', array('id' => $activity['source_contact_id']));
+      }
+    }
+    foreach($this->_activities as $id => $activity) {
+      // Build an array of values for export
+      $fields = array(
+        'id' => $id,
+        'date' => $activity['activity_date_time'],
+        'order_type' => $activity['custom' . $this->customFields['order_type']['id']],
+      );
+
+      // Get the correct output file
+      if (isset($this->files[$fields['order_type']])) {
+        $file = $this->files[$fields['order_type']];
+      }
+      else {
+        $file = $this->files['default'];
+      }
+      // Build the row
+      $csv = implode(',', array_values($fields));
+
+      // Write header on first line
+      if (!$file['hasContent']) {
+        $header = implode(',', array_keys($fields));
+        file_put_contents($file['outfile'], $header.PHP_EOL, FILE_APPEND | LOCK_EX);
+        $file['hasContent'] = TRUE;
+      }
+
+      file_put_contents($file['outfile'], $csv.PHP_EOL, FILE_APPEND | LOCK_EX);
     }
     // Set to TRUE on successful export
     $this->_exportComplete = TRUE;
@@ -97,12 +172,33 @@ class CRM_Customexport_Webshop {
    *
    * @param string $method
    */
-  private function upload($method='sftp') {
+  private function upload() {
     if ($this->_exportComplete) {
-      // TODO: Add upload code, and settings to save login etc?
+      // Upload each file in sequence.  If one fails record error and move on to the next one.
+      foreach ($this->settings as $setting) {
+        $fileData = $this->files[$setting['order_type']];
+        // Check if any data was found for each file type
+        if (!$fileData['hasContent']) {
+          continue;
+        }
 
-      // Set to TRUE on success
-      $this->_uploadComplete = TRUE;
+        // We have data, so upload the file
+        // $fileData['outfile']; local file
+        // $fileData['remote']; remote file
+        $uploader = new CRM_Customexport_Upload($fileData['outfile']);
+        $uploader->setServer($fileData['remote']);
+        if ($uploader->upload() != 0) {
+          $this->files[$setting['order_type']]['uploaded'] = FALSE;
+          $this->files[$setting['order_type']]['uploadError'] = $uploader->getErrorMessage();
+        }
+        else {
+          $this->files[$setting['order_type']]['uploaded'] = TRUE;
+        }
+      }
+    }
+
+    if (isset($errors)) {
+      $this->uploadErrors = $errors;
     }
   }
 
@@ -111,16 +207,30 @@ class CRM_Customexport_Webshop {
    */
   private function setOrderExported() {
     // We set the order_exported for the activity once we get confirmation that the export/upload completed successfully.
-    if ($this->_uploadComplete) {
-      foreach ($this->_activities as $activity) {
+
+    // Get the upload status for each order type and put in an array for lookup later
+    foreach ($this->settings as $setting) {
+      $orderUploaded[$setting['order_type']] = $this->files[$setting['order_type']]['uploaded'];
+    }
+
+    foreach ($this->_activities as $activity) {
+      $orderType = $activity['custom_'] . $this->customFields['order_type']['id'];
+      // We need to see if the order_type has been uploaded or not
+      $uploaded = FALSE;
+      if (isset($orderUploaded[$orderType])) {
+        // Has the specific order type been uploaded
+        $uploaded = $orderUploaded[$orderType];
+      }
+      elseif (isset($orderUploaded['default'])) {
+        // If the specific order type doesn't exist, it will have been uploaded using the default order_type
+        $uploaded = $orderUploaded['default'];
+      }
+      if ($uploaded) {
         $params = $activity;
-        $params['custom_' . $this->orderExportedField['id']] = 1;
+        $params['custom_' . $this->customFields['order_exported']['id']] = 1;
         $activities = civicrm_api3('Activity', 'create', $params);
       }
-      return TRUE;
-    }
-    else {
-      return FALSE;
     }
   }
+
 }
