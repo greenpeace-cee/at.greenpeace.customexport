@@ -36,7 +36,7 @@ class CRM_Customexport_Webshop {
       'file' => 'webshop1',
       'remote' => 'sftp://test1:test1@example.org/webshop1/'
     );
-    CRM_Customexport_Utils::setSetting(json_encode($webshopExports));
+    CRM_Customexport_Utils::setSetting(json_encode($webshopExports), 'webshop_exports');
   }
 
   function __construct() {
@@ -70,7 +70,7 @@ class CRM_Customexport_Webshop {
     //   file => csv file name (eg. export),
     //   remote => remote server (eg. sftp://user:pass@server.com/dir/)
     // )
-    $this->settings = json_decode(CRM_Customexport_Utils::getSettings('webshopExports'));
+    $this->settings = json_decode(CRM_Customexport_Utils::getSettings('webshop_exports'));
     foreach ($this->settings['order_type'] as $orderType) {
       if ($orderType == 'default') {
         return TRUE;
