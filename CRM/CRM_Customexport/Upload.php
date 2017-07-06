@@ -1,6 +1,6 @@
 <?php
 
-class CRM_Webshopexport_Upload {
+class CRM_Customexport_Upload {
   private $localFile;
   private $method;
   private $user;
