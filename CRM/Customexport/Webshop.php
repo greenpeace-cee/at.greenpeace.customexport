@@ -26,6 +26,17 @@ class CRM_Customexport_Webshop {
       );
       $activityType = civicrm_api3('OptionValue', 'Create', $activityParams);
     }
+
+    // Create example settings
+    $webshopExports['default'] = array(
+      'file' => 'default',
+      'remote' => 'sftp://test:test@example.org/default/',
+    );
+    $webshopExports[1] = array(
+      'file' => 'webshop1',
+      'remote' => 'sftp://test1:test1@example.org/webshop1/'
+    );
+    CRM_Customexport_Utils::setSetting(json_encode($webshopExports));
   }
 
   function __construct() {
@@ -55,9 +66,10 @@ class CRM_Customexport_Webshop {
    */
   private function getExportSettings() {
     // This is an array of exports:
-    // order_type => optionvalue_id(order_type),
-    // file => csv file name (eg. export),
-    // remote => remote server (eg. sftp://user:pass@server.com/dir/)
+    // order_type => optionvalue_id(order_type) = array(
+    //   file => csv file name (eg. export),
+    //   remote => remote server (eg. sftp://user:pass@server.com/dir/)
+    // )
     $this->settings = json_decode(CRM_Customexport_Utils::getSettings('webshopExports'));
     foreach ($this->settings['order_type'] as $orderType) {
       if ($orderType == 'default') {
@@ -125,7 +137,10 @@ class CRM_Customexport_Webshop {
     // remote => remote server (eg. sftp://user:pass@server.com/dir/)
     foreach ($this->settings as $setting) {
       $this->files[$setting['order_type']] = $setting;
-      $this->files[$setting['order_type']]['outfile'] = $this->localFilePath . '/' . $setting['file'] . '_' . $date->format('YmdHisu'). '.csv';
+      $this->files[$setting['order_type']]['outfilename'] = $setting['file'] . '_' . $date->format('YmdHisu'). '.csv';
+      $this->files[$setting['order_type']]['outfile'] = $this->localFilePath . '/' . $this->files[$setting['order_type']]['outfilename'];
+
+
       $this->files[$setting['order_type']]['hasContent'] = FALSE; // Set to TRUE once header is written
     }
 
@@ -186,7 +201,7 @@ class CRM_Customexport_Webshop {
         // $fileData['outfile']; local file
         // $fileData['remote']; remote file
         $uploader = new CRM_Customexport_Upload($fileData['outfile']);
-        $uploader->setServer($fileData['remote']);
+        $uploader->setServer($fileData['remote'] . $fileData['outfilename']);
         if ($uploader->upload() != 0) {
           $this->files[$setting['order_type']]['uploaded'] = FALSE;
           $this->files[$setting['order_type']]['uploadError'] = $uploader->getErrorMessage();
