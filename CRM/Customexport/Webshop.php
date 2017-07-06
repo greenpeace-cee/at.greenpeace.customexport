@@ -26,17 +26,6 @@ class CRM_Customexport_Webshop {
       );
       $activityType = civicrm_api3('OptionValue', 'Create', $activityParams);
     }
-
-    // Create example settings
-    $webshopExports['default'] = array(
-      'file' => 'default',
-      'remote' => 'sftp://test:test@example.org/default/',
-    );
-    $webshopExports[1] = array(
-      'file' => 'webshop1',
-      'remote' => 'sftp://test1:test1@example.org/webshop1/'
-    );
-    CRM_Customexport_Utils::setSetting(json_encode($webshopExports), 'webshop_exports');
   }
 
   function __construct() {
