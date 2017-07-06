@@ -1,13 +1,25 @@
 <?php
 
-class CRM_Webshopexport_Export {
+class CRM_Customexport_Webshop {
 
   private $_activities = array();
   protected $csvFilename;
 
   private $_exportComplete = FALSE; // Set to true once we've successfully exported
   private $_uploadComplete = FALSE; // Set to true once we've successfully uploaded the csv export
+  private $settings;
 
+  function __construct() {
+    getExportSettings();
+  }
+
+  private function getExportSettings() {
+    // This is an array of exports:
+    // order_type => optionvalue_id(order_type),
+    // file => csv file name (eg. export.csv),
+    // remote => remote server (eg. sftp://user:pass@server.com/dir/)
+    $this->settings = json_decode(CRM_Customexport_Utils::getSettings('webshopExports'));
+  }
   /**
    * Export all webshop activities
    */

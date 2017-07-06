@@ -3,61 +3,427 @@
 <CustomData>
   <CustomGroups>
     <CustomGroup>
-      <name>Webshop</name>
-      <title>Webshop</title>
+      <name>webshop_information</name>
+      <title>Webshop Information</title>
       <extends>Activity</extends>
-      <extends_entity_column_value_option_group>activity_type</extends_entity_column_value_option_group>
-      <extends_entity_column_value>Webshop Order</extends_entity_column_value>
       <style>Inline</style>
-      <collapse_display>1</collapse_display>
+      <collapse_display>0</collapse_display>
       <help_pre></help_pre>
       <help_post></help_post>
-      <weight>8</weight>
+      <weight>1</weight>
       <is_active>1</is_active>
-      <table_name>civicrm_value_webshop</table_name>
+      <table_name>civicrm_value_webshop_information_16</table_name>
       <is_multiple>0</is_multiple>
-      <collapse_adv_display>0</collapse_adv_display>
+      <collapse_adv_display>1</collapse_adv_display>
       <is_reserved>0</is_reserved>
     </CustomGroup>
   </CustomGroups>
   <CustomFields>
     <CustomField>
-      <name>payment_received</name>
-      <label>Payment Received</label>
-      <data_type>Boolean</data_type>
-      <html_type>Radio</html_type>
-      <default_value>0</default_value>
-      <is_required>1</is_required>
-      <is_searchable>0</is_searchable>
+      <name>order_type</name>
+      <label>Order Type</label>
+      <data_type>String</data_type>
+      <html_type>Select</html_type>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
       <is_search_range>0</is_search_range>
       <weight>1</weight>
       <is_active>1</is_active>
       <is_view>0</is_view>
-      <text_length>255</text_length>
-      <note_columns>60</note_columns>
-      <note_rows>4</note_rows>
-      <column_name>payment_received</column_name>
+      <column_name>order_type_84</column_name>
       <in_selector>0</in_selector>
-      <custom_group_name>Webshop</custom_group_name>
+      <option_group_name>order_type</option_group_name>
+      <custom_group_name>webshop_information</custom_group_name>
     </CustomField>
     <CustomField>
-      <name>order_exported</name>
-      <label>Order Exported</label>
-      <data_type>Boolean</data_type>
-      <html_type>Radio</html_type>
-      <default_value>0</default_value>
-      <is_required>1</is_required>
-      <is_searchable>0</is_searchable>
+      <name>shirt_type</name>
+      <label>T-Shirt-Type</label>
+      <data_type>String</data_type>
+      <html_type>Select</html_type>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
       <is_search_range>0</is_search_range>
       <weight>2</weight>
       <is_active>1</is_active>
       <is_view>0</is_view>
-      <text_length>255</text_length>
+      <column_name>shirt_type_85</column_name>
+      <in_selector>0</in_selector>
+      <option_group_name>shirt_type</option_group_name>
+      <custom_group_name>webshop_information</custom_group_name>
+    </CustomField>
+    <CustomField>
+      <name>shirt_size</name>
+      <label>T-Shirt-Size</label>
+      <data_type>String</data_type>
+      <html_type>Select</html_type>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>3</weight>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <column_name>shirt_size_86</column_name>
+      <in_selector>0</in_selector>
+      <option_group_name>shirt_size</option_group_name>
+      <custom_group_name>webshop_information</custom_group_name>
+    </CustomField>
+    <CustomField>
+      <name>order_count</name>
+      <label>Number of Items</label>
+      <data_type>Int</data_type>
+      <html_type>Text</html_type>
+      <default_value>1</default_value>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>4</weight>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <column_name>order_count_87</column_name>
+      <in_selector>0</in_selector>
+      <custom_group_name>webshop_information</custom_group_name>
+    </CustomField>
+    <CustomField>
+      <name>payment_received</name>
+      <label>Payment received?</label>
+      <data_type>Boolean</data_type>
+      <html_type>Radio</html_type>
+      <default_value>0</default_value>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>5</weight>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <column_name>payment_received_88</column_name>
+      <in_selector>0</in_selector>
+      <custom_group_name>webshop_information</custom_group_name>
+    </CustomField>
+    <CustomField>
+      <name>order_exported</name>
+      <label>Order exported?</label>
+      <data_type>Boolean</data_type>
+      <html_type>Radio</html_type>
+      <default_value>0</default_value>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>6</weight>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <column_name>order_exported_89</column_name>
+      <in_selector>0</in_selector>
+      <custom_group_name>webshop_information</custom_group_name>
+    </CustomField>
+    <CustomField>
+      <name>linked_contribution</name>
+      <label>Linked Contribution</label>
+      <data_type>Int</data_type>
+      <html_type>Text</html_type>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>7</weight>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <column_name>linked_contribution_90</column_name>
+      <in_selector>0</in_selector>
+      <custom_group_name>webshop_information</custom_group_name>
+    </CustomField>
+    <CustomField>
+      <name>linked_membership</name>
+      <label>Linked Membership</label>
+      <data_type>Int</data_type>
+      <html_type>Text</html_type>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>8</weight>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <column_name>linked_membership_91</column_name>
+      <in_selector>0</in_selector>
+      <custom_group_name>webshop_information</custom_group_name>
+    </CustomField>
+    <CustomField>
+      <name>multi_purpose</name>
+      <label>Multi Purpose Field</label>
+      <data_type>Memo</data_type>
+      <html_type>TextArea</html_type>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>9</weight>
+      <attributes>rows=4, cols=60</attributes>
+      <is_active>1</is_active>
+      <is_view>1</is_view>
       <note_columns>60</note_columns>
       <note_rows>4</note_rows>
-      <column_name>order_exported</column_name>
+      <column_name>multi_purpose_92</column_name>
       <in_selector>0</in_selector>
-      <custom_group_name>Webshop</custom_group_name>
+      <custom_group_name>webshop_information</custom_group_name>
     </CustomField>
   </CustomFields>
+  <OptionGroups>
+    <OptionGroup>
+      <name>order_type</name>
+      <title>Order Type</title>
+      <is_reserved>1</is_reserved>
+      <is_active>1</is_active>
+    </OptionGroup>
+    <OptionGroup>
+      <name>shirt_type</name>
+      <title>T-Shirt Type Options</title>
+      <is_reserved>1</is_reserved>
+      <is_active>1</is_active>
+    </OptionGroup>
+    <OptionGroup>
+      <name>shirt_size</name>
+      <title>T-Shirt Size Options</title>
+      <is_reserved>1</is_reserved>
+      <is_active>1</is_active>
+    </OptionGroup>
+  </OptionGroups>
+  <OptionValues>
+    <OptionValue>
+      <label>Banner Bag - Urban Activist</label>
+      <value>1</value>
+      <name>Banner Bag - Urban Activist</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>1</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>order_type</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>Banner Bag - Urban Ninja</label>
+      <value>2</value>
+      <name>Banner Bag - Urban Ninja</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>2</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>order_type</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>Bienenretter-Paket</label>
+      <value>3</value>
+      <name>Bienenretter-Paket</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>3</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>order_type</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>Geschenk-Zertifikat - Energie</label>
+      <value>4</value>
+      <name>Geschenk-Zertifikat - Energie</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>4</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>order_type</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>Geschenk-Zertifikat - Landwirtschaft</label>
+      <value>5</value>
+      <name>Geschenk-Zertifikat - Landwirtschaft</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>5</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>order_type</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>Geschenk-Zertifikat - Meere</label>
+      <value>6</value>
+      <name>Geschenk-Zertifikat - Meere</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>6</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>order_type</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>Geschenk-Zertifikat - Arktis</label>
+      <value>7</value>
+      <name>Geschenk-Zertifikat - Arktis</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>7</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>order_type</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>Saatgut-Kalender</label>
+      <value>8</value>
+      <name>Saatgut-Kalender</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>8</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>order_type</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>Kosmetik-Paket</label>
+      <value>9</value>
+      <name>Kosmetik-Paket</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>9</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>order_type</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>Fotobuch Bitesnich</label>
+      <value>10</value>
+      <name>Fotobuch Bitesnich</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>10</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>order_type</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>T-Shirt</label>
+      <value>11</value>
+      <name>T-Shirt</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>11</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>order_type</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>Bienensamen-Säckchen</label>
+      <value>12</value>
+      <name>Bienensamen-Säckchen</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>12</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>order_type</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>Ratgeber-Paket</label>
+      <value>13</value>
+      <name>Ratgeber-Paket</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>13</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>order_type</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>Geschenk-Zertifikat - Arktis</label>
+      <value>14</value>
+      <name>Geschenk-Zertifikat - Arktis</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>14</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>order_type</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>Herren</label>
+      <value>M</value>
+      <name>Herren</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>1</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>shirt_type</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>Damen</label>
+      <value>W</value>
+      <name>Damen</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>2</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>shirt_type</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>S</label>
+      <value>S</value>
+      <name>S</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>1</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>shirt_size</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>M</label>
+      <value>M</value>
+      <name>M</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>2</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>shirt_size</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>L</label>
+      <value>L</value>
+      <name>L</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>3</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>shirt_size</option_group_name>
+    </OptionValue>
+    <OptionValue>
+      <label>XL</label>
+      <value>XL</value>
+      <name>XL</name>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>4</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>shirt_size</option_group_name>
+    </OptionValue>
+  </OptionValues>
 </CustomData>

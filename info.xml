@@ -1,18 +1,18 @@
 <?xml version="1.0"?>
-<extension key="de.systopia.webshopexport" type="module">
-  <file>webshopexport</file>
-  <name>Webshop Order Export</name>
-  <description>Export Webshop Orders to remote SFTP using a csv file</description>
+<extension key="de.systopia.customexport" type="module">
+  <file>customexport</file>
+  <name>Custom Export</name>
+  <description>Automatic data exports to remote SFTP using a csv file</description>
   <license>AGPL-3.0</license>
   <maintainer>
     <author>Matthew Wire</author>
     <email>mjw@mjwconsult.co.uk</email>
   </maintainer>
   <urls>
-    <url desc="Main Extension Page">https://github.com/mattwire/de.systopia.webshopexport</url>
+    <url desc="Main Extension Page">https://github.com/mattwire/de.systopia.customexport</url>
     <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
   </urls>
-  <releaseDate>2017-06-19</releaseDate>
+  <releaseDate>2017-07-06</releaseDate>
   <version>0.1</version>
   <develStage>alpha</develStage>
   <compatibility>
@@ -21,6 +21,6 @@
   </compatibility>
   <comments></comments>
   <civix>
-    <namespace>CRM/Webshopexport</namespace>
+    <namespace>CRM/Customexport</namespace>
   </civix>
 </extension>

@@ -1,14 +1,14 @@
 <?php
 
-require_once 'webshopexport.civix.php';
+require_once 'customexport.civix.php';
 
 /**
  * Implements hook_civicrm_config().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_config
  */
-function webshopexport_civicrm_config(&$config) {
-  _webshopexport_civix_civicrm_config($config);
+function customexport_civicrm_config(&$config) {
+  _customexport_civix_civicrm_config($config);
 }
 
 /**
@@ -16,8 +16,8 @@ function webshopexport_civicrm_config(&$config) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_xmlMenu
  */
-function webshopexport_civicrm_xmlMenu(&$files) {
-  _webshopexport_civix_civicrm_xmlMenu($files);
+function customexport_civicrm_xmlMenu(&$files) {
+  _customexport_civix_civicrm_xmlMenu($files);
 }
 
 /**
@@ -25,10 +25,10 @@ function webshopexport_civicrm_xmlMenu(&$files) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_install
  */
-function webshopexport_civicrm_install() {
+function customexport_civicrm_install() {
   // Create a "Webshop Order" activity type
   // See if we already have this type
-  $activityName = webshopexport_activityName();
+  $activityName = customexport_activityName();
   $activity = civicrm_api3('OptionValue', 'get', array(
     'option_group_id' => "activity_type",
     'name' => $activityName,
@@ -42,7 +42,7 @@ function webshopexport_civicrm_install() {
     $activityType = civicrm_api3('OptionValue', 'Create', $activityParams);
   }
 
-  _webshopexport_civix_civicrm_install();
+  _customexport_civix_civicrm_install();
 }
 
 /**
@@ -50,8 +50,8 @@ function webshopexport_civicrm_install() {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_postInstall
  */
-function webshopexport_civicrm_postInstall() {
-  _webshopexport_civix_civicrm_postInstall();
+function customexport_civicrm_postInstall() {
+  _customexport_civix_civicrm_postInstall();
 }
 
 /**
@@ -59,8 +59,8 @@ function webshopexport_civicrm_postInstall() {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_uninstall
  */
-function webshopexport_civicrm_uninstall() {
-  _webshopexport_civix_civicrm_uninstall();
+function customexport_civicrm_uninstall() {
+  _customexport_civix_civicrm_uninstall();
 }
 
 /**
@@ -68,8 +68,8 @@ function webshopexport_civicrm_uninstall() {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_enable
  */
-function webshopexport_civicrm_enable() {
-  _webshopexport_civix_civicrm_enable();
+function customexport_civicrm_enable() {
+  _customexport_civix_civicrm_enable();
 }
 
 /**
@@ -77,8 +77,8 @@ function webshopexport_civicrm_enable() {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_disable
  */
-function webshopexport_civicrm_disable() {
-  _webshopexport_civix_civicrm_disable();
+function customexport_civicrm_disable() {
+  _customexport_civix_civicrm_disable();
 }
 
 /**
@@ -86,8 +86,8 @@ function webshopexport_civicrm_disable() {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_upgrade
  */
-function webshopexport_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _webshopexport_civix_civicrm_upgrade($op, $queue);
+function customexport_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
+  return _customexport_civix_civicrm_upgrade($op, $queue);
 }
 
 /**
@@ -98,8 +98,8 @@ function webshopexport_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_managed
  */
-function webshopexport_civicrm_managed(&$entities) {
-  _webshopexport_civix_civicrm_managed($entities);
+function customexport_civicrm_managed(&$entities) {
+  _customexport_civix_civicrm_managed($entities);
 }
 
 /**
@@ -111,8 +111,8 @@ function webshopexport_civicrm_managed(&$entities) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_caseTypes
  */
-function webshopexport_civicrm_caseTypes(&$caseTypes) {
-  _webshopexport_civix_civicrm_caseTypes($caseTypes);
+function customexport_civicrm_caseTypes(&$caseTypes) {
+  _customexport_civix_civicrm_caseTypes($caseTypes);
 }
 
 /**
@@ -125,8 +125,8 @@ function webshopexport_civicrm_caseTypes(&$caseTypes) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_angularModules
  */
-function webshopexport_civicrm_angularModules(&$angularModules) {
-  _webshopexport_civix_civicrm_angularModules($angularModules);
+function customexport_civicrm_angularModules(&$angularModules) {
+  _customexport_civix_civicrm_angularModules($angularModules);
 }
 
 /**
@@ -134,10 +134,10 @@ function webshopexport_civicrm_angularModules(&$angularModules) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_alterSettingsFolders
  */
-function webshopexport_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
-  _webshopexport_civix_civicrm_alterSettingsFolders($metaDataFolders);
+function customexport_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
+  _customexport_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
 
-function webshopexport_activityName() {
+function customexport_activityName() {
   return 'Webshop Order';
 }

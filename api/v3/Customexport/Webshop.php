@@ -8,7 +8,7 @@
  * @return void
  * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
  */
-function _civicrm_api3_webshop_Export_spec(&$spec) {
+function _civicrm_api3_customexport_webshop_spec(&$spec) {
 }
 
 /**
@@ -20,8 +20,8 @@ function _civicrm_api3_webshop_Export_spec(&$spec) {
  * @see civicrm_api3_create_error
  * @throws API_Exception
  */
-function civicrm_api3_webshop_Export($params) {
-  $exporter = new CRM_Webshopexport_Export();
+function civicrm_api3_customexport_webshop($params) {
+  $exporter = new CRM_Customexport_Webshop();
   $result = $exporter->export();
   if (empty($result['is_error'])) {
     return civicrm_api3_create_success(1, $params, 'Webshop', 'Export');

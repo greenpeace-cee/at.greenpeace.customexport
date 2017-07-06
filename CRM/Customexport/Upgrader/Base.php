@@ -5,7 +5,7 @@
 /**
  * Base class which provides helpers to execute upgrade logic
  */
-class CRM_Webshopexport_Upgrader_Base {
+class CRM_Customexport_Upgrader_Base {
 
   /**
    * @var varies, subclass of ttis
@@ -44,8 +44,8 @@ class CRM_Webshopexport_Upgrader_Base {
   static public function instance() {
     if (!self::$instance) {
       // FIXME auto-generate
-      self::$instance = new CRM_Webshopexport_Upgrader(
-        'de.systopia.webshopexport',
+      self::$instance = new CRM_Customexport_Upgrader(
+        'de.systopia.customexport',
         realpath(__DIR__ . '/../../../')
       );
     }

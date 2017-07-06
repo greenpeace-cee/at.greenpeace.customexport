@@ -10,7 +10,7 @@ class CRM_Customexport_Upload {
   private $error;
 
   /**
-   * CRM_Webshopexport_Upload constructor.
+   * CRM_Customexport_Upload constructor.
    *
    * @param $localFile (pass full path and filename)
    * @param string $method (defaults to sftp)
