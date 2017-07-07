@@ -77,7 +77,7 @@ class CRM_Customexport_Upload {
     }
     curl_setopt($ch, CURLOPT_INFILE, $fp);
     curl_setopt($ch, CURLOPT_INFILESIZE, filesize($localfile));
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5); // FIXME: Increase once testing completed.
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
     curl_exec ($ch);
     $error_no = curl_errno($ch);
     if ($error_no == 0) {
