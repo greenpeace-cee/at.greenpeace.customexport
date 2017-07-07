@@ -147,18 +147,19 @@ class CRM_Customexport_Webshop {
 
       $contact = $sourceContacts[$activity['source_contact_id']];
 
+
       $fields = array(
         'id' => $id,
         'titel' => $contact['formal_title'],
-        'anrede' => $contact['prefix_id'], // FIXME: Map to prefix text
+        'anrede' => $contact['individual_prefix'],
         'vorname' => $contact['first_name'],
         'nachname' => $contact['last_name'],
         'co' => $contact['current_employer'],
         'strasse' => $contact['street_address'],
-        //'plz' => $contact[''],
+        'state' => $contact['state_province'],
         'ort' => $contact['city'],
         'postfach' => $contact['postal_code'],
-        'land' => $contact['country_id'], // FIXME: Map to country.
+        'land' => $contact['country'],
         //'zeilgruppe_id' =>
         //'zielgruppe' =>
         //'paket' =>
@@ -167,7 +168,7 @@ class CRM_Customexport_Webshop {
         //'iban_empfaenger' =>
         //'bic_empfaenger' =>
         //'pruefziffer' =>
-        'item' => $activity['custom_' . $this->customFields['order_type']['id']], // FIXME: Map to optionvalue
+        'item' => CRM_Core_OptionGroup::getLabel('order_type', $activity['custom_' . $this->customFields['order_type']['id']]),
         'anzahl_items' => $activity['custom_' . $this->customFields['order_count']['id']],
         'tshirt_type' => $activity['custom_' . $this->customFields['shirt_type']['id']],
         'tshirt_size' => $activity['custom_' . $this->customFields['shirt_size']['id']],
@@ -263,6 +264,4 @@ class CRM_Customexport_Webshop {
       }
     }
   }
-
 }
-
