@@ -39,22 +39,24 @@ class CRM_Customexport_Upload {
    * Set remote server url and path.  You can pass in a url like sftp://user:password@host.com or just host.com
    *  If you just pass in 'host.com' the method, username and password will be added automatically.
    * @param $host
+   * @param $fullURI = TRUE.  If TRUE, full URI must be passed in via $host (eg. sftp://user:pass@example.com/dir1/).  Optionally specify filename too, or specify this in $path
    * @param $path
    */
-  function setServer($host, $path) {
-    // Prefix host with uri.
-    if (strpos($host,'://') === FALSE) {
-      switch ($this->method) {
-        case 'sftp':
-        default:
-          $host = 'sftp://' . $this->user . ':' . $this->password . '@' . $host;
+  function setServer($host, $fullURI = TRUE, $path) {
+    if (!$fullURI) {
+      // Prefix host with uri.
+      if (strpos($host, '://') === FALSE) {
+        switch ($this->method) {
+          case 'sftp':
+          default:
+            $host = 'sftp://' . $this->user . ':' . $this->password . '@' . $host;
+        }
+      }
+      if (substr($host, -1) != '/') {
+        $host = $host . '/';
       }
     }
-    if (substr($host, -1) != '/') {
-      $host = $host . '/';
-    }
     $this->url = $host;
-
     $this->remotePath = $path;
   }
 
@@ -75,15 +77,16 @@ class CRM_Customexport_Upload {
     }
     curl_setopt($ch, CURLOPT_INFILE, $fp);
     curl_setopt($ch, CURLOPT_INFILESIZE, filesize($localfile));
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5); // FIXME: Increase once testing completed.
     curl_exec ($ch);
     $error_no = curl_errno($ch);
-    curl_close ($ch);
-
     if ($error_no == 0) {
       $this->error = 'File uploaded succesfully.';
     } else {
-      $this->error = 'File upload error.';
+      $this->error = curl_error($ch);
     }
+
+    curl_close ($ch);
 
     return $error_no;
   }
