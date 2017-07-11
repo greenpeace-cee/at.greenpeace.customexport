@@ -1,34 +1,15 @@
 <?php
 
-class CRM_Customexport_Webshop extends CRM_Customexport_Base {
+class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
 
   private $_activities = array();
 
   private $_exportComplete = FALSE; // Set to true once we've successfully exported
   private $customFields;
 
-  const ACTIVITY_NAME = 'Webshop Order';
-
-  static function install() {
-    // Create a "Webshop Order" activity type
-    // See if we already have this type
-    $activity = civicrm_api3('OptionValue', 'get', array(
-      'option_group_id' => "activity_type",
-      'name' => self::ACTIVITY_NAME,
-    ));
-    if (empty($activity['count'])) {
-      $activityParams = array(
-        'option_group_id' => "activity_type",
-        'name' => self::ACTIVITY_NAME,
-        'description' => self::ACTIVITY_NAME
-      );
-      $activityType = civicrm_api3('OptionValue', 'Create', $activityParams);
-    }
-  }
-
   function __construct() {
-    if (!$this->getExportSettings('webshop_exports')) {
-      throw new Exception('Could not load webshopExports settings - did you define a default value?');
+    if (!$this->getExportSettings('versandtool_exports')) {
+      throw new Exception('Could not load versandtoolExports settings - did you define a default value?');
     };
     $this->getCustomFields();
     $this->getLocalFilePath();
