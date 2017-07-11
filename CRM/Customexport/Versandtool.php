@@ -2,17 +2,23 @@
 
 class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
 
-  private $_activities = array();
+  private $contactsBatch = array(); // Array to hold batches of contacts
 
-  private $_exportComplete = FALSE; // Set to true once we've successfully exported
+  private $batchSize; // Number of contacts in each batch (all batches output to the same csv file)
+  private $batchOffset; // The current batch offset
+  private $totalContacts; // The total number of contacts meeting criteria
+  private $exportFile; // Details of the file used for export
+
   private $customFields;
 
-  function __construct() {
+  function __construct($batchSize = 100) {
     if (!$this->getExportSettings('versandtool_exports')) {
       throw new Exception('Could not load versandtoolExports settings - did you define a default value?');
     };
     $this->getCustomFields();
     $this->getLocalFilePath();
+
+    $this->batchSize = $batchSize;
   }
 
   /**
@@ -29,45 +35,69 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
   }
 
   /**
-   * Export all webshop activities
+   * Export all contacts meeting criteria
    */
   public function export() {
-    if (!$this->getValidActivities()) {
-      $result['is_error'] = TRUE;
-      $result['message'] = 'No valid activities found for export';
-      return $result;
-    }
+    $this->totalContacts = $this->getContactCount();
+    $this->batchOffset = 0;
 
-    $this->exportToCSV();
+    while ($this->batchOffset < $this->totalContacts) {
+      // Export each batch to csv
+      $this->_exportComplete = FALSE;
+      if (!$this->getValidContacts($this->batchSize, $this->batchOffset)) {
+        $result['is_error'] = TRUE;
+        $result['message'] = 'No valid contacts found for export';
+        return $result;
+      }
+      $this->exportToCSV();
+      if (!$this->_exportComplete) {
+        $result['is_error'] = TRUE;
+        $result['message'] = 'Error during exportToCSV';
+        return $result;
+      }
+      // Increment batch
+      $this->batchOffset = $this->batchOffset + $this->batchSize;
+    }
+    
+    // Once all batches exported:
     $this->upload();
-    $this->setOrderExported();
-    if ($this->_exportComplete) {
-      return TRUE;
+  }
+
+  /**
+   * Get the count of all contacts meeting criteria
+   *
+   * @return bool
+   */
+  private function getContactCount() {
+    $contactCount = civicrm_api3('Contact', 'getcount', array(
+      'contact_type' => "Individual",
+      'do_not_email' => 0,
+      'is_opt_out' => 0,
+    ));
+    if (empty($contactCount['is_error'])) {
+      return $contactCount['result'];
     }
     return FALSE;
   }
 
   /**
-   * Get array of all valid activities
+   * Get batch of contacts who are Individuals; do_not_email, user_opt_out is not set
+   * Retrieve in batches for performance reasons
+   * @param $limit
+   * @param $offset
    *
-   * @return bool|array of activities
+   * @return bool
    */
-  private function getValidActivities() {
-    // Activity is valid when the following conditions are met:
-    // Activity Type = "Webshop Order"
-    // payment_received = Yes
-    // order_exported = No
-
-    $this->activityTypeId = CRM_Core_PseudoConstant::getKey('CRM_Activity_BAO_Activity', 'activity_type_id', self::ACTIVITY_NAME);
-
-    $activities = civicrm_api3('Activity', 'get', array(
-      'activity_type_id' => $this->activityTypeId,
-      'custom_'.$this->customFields['payment_received']['id'] => 1,
-      'custom_'.$this->customFields['order_exported']['id'] => 0,
+  private function getValidContacts($limit, $offset) {
+    $contacts = civicrm_api3('Contact', 'get', array(
+      'contact_type' => "Individual",
+      'options' => array('limit' => $limit, 'offset' => $offset),
+      'do_not_email' => 0,
+      'is_opt_out' => 0,
     ));
 
-    if (empty($activities['is_error']) && ($activities['count'] > 0)) {
-      $this->_activities = $activities['values'];
+    if (empty($contacts['is_error']) && ($contacts['count'] > 0)) {
+      $this->contactsBatch = $contacts['values'];
       return TRUE;
     }
     return FALSE;
@@ -85,80 +115,62 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
     // order_type => optionvalue_id(order_type),
     // file => csv file name (eg. export),
     // remote => remote server (eg. sftp://user:pass@server.com/dir/)
-    foreach ($this->settings as $orderType => $setting) {
-      $this->files[$orderType] = $setting;
-      $this->files[$orderType]['outfilename'] = $setting['file'] . '_' . $date->format('YmdHis'). '.csv';
-      $this->files[$orderType]['outfile'] = $this->localFilePath . '/' . $this->files[$orderType]['outfilename'];
-      $this->files[$orderType]['hasContent'] = FALSE; // Set to TRUE once header is written
-    }
+    if (!isset($this->settings['default']))
+      return FALSE;
 
-    // Load and cache all contact IDs before we export, so we don't do multiple lookups for the same contact.
-    $sourceContacts = array();
-    foreach($this->_activities as $id => $activity) {
-      if (!array_key_exists($sourceContacts[$activity['source_contact_id']])) {
-        $sourceContacts[$activity['source_contact_id']] = civicrm_api3('Contact', 'getsingle', array('id' => $activity['source_contact_id']));
-      }
-    }
-    foreach($this->_activities as $id => $activity) {
+    $this->exportFile = $this->settings['default'];
+    $this->exportFile['outfilename'] = $this->exportFile['file'] . '_' . $date->format('YmdHis'). '.csv';
+    $this->exportFile['outfile'] = $this->localFilePath . '/' . $this->exportFile['outfilename'];
+    $this->exportFile['hasContent'] = FALSE; // Set to TRUE once header is written
+
+    foreach($this->contactsBatch as $id => $contact) {
       // Build an array of values for export
       // Required fields:
-      // ["id", "titel", "anrede", "vorname", "nachname", "co", "strasse", "plz", "ort", "postfach", "land", "zielgruppe ID",
-      // "zielgruppe", "paket", "kundennummer", "sepa_belegart", "iban_empfaenger", "bic_empfaenger", "pruefziffer"]
-      // "item", "anzahl_items", "date_of_order", "activity_description", "spendensumme"]
-
-      $contact = $sourceContacts[$activity['source_contact_id']];
-
+      // Kontakt-Hash;E-Mail;Salutation;Firstname;Lastname;Birthday;Title;ZIP;City;Country;Address;
+      // Contact_ID;Telephone;PersonID_IMB;Package_id;Segment_id;Community NL;Donation Info;Campaign_Topic;Petition
+      // CiviCRM Kontakt-Hash;Bulk E-Mail falls vorhanden, ansonsten Primäre E-Mail-Adresse;Prefix;First Name;Last Name;Date of Birth;Title;ZIP code (primary);City (primary);countyr code (primary;Street Address AND Supplemental Address (primary);
+      // CiviCRM Contakt-ID;phone number (primary);The old IMB Contact ID – should be filled if contact has an external CiviCRM ID that starts with „IMB-“;to be ignored for daily/regular export;to be ignored for daily/regular export;Contact status (added, removed, none) of  Group „Community NL“;
+      // Contact status (added, removed, none) of  Group „Donation Info “;fill with external campaign identifiers of the linked survey (linked via activity) (each value only once);fill with internal CiviCRM „Survey ID“ if any activity of the contact is connected to a survey  (each value only once)
 
       $fields = array(
-        'id' => $id,
-        'titel' => $contact['formal_title'],
-        'anrede' => $contact['individual_prefix'],
-        'vorname' => $contact['first_name'],
-        'nachname' => $contact['last_name'],
-        'co' => $contact['current_employer'],
-        'strasse' => $contact['street_address'],
-        'state' => $contact['state_province'],
-        'ort' => $contact['city'],
-        'postfach' => $contact['postal_code'],
-        'land' => $contact['country'],
-        //'zeilgruppe_id' =>
-        //'zielgruppe' =>
-        //'paket' =>
-        'kundennummber' => $contact['id'],
-        //'sepa_belegart' =>
-        //'iban_empfaenger' =>
-        //'bic_empfaenger' =>
-        //'pruefziffer' =>
-        'item' => CRM_Core_OptionGroup::getLabel('order_type', $activity['custom_' . $this->customFields['order_type']['id']]),
-        'anzahl_items' => $activity['custom_' . $this->customFields['order_count']['id']],
-        'tshirt_type' => $activity['custom_' . $this->customFields['shirt_type']['id']],
-        'tshirt_size' => $activity['custom_' . $this->customFields['shirt_size']['id']],
-        'date_of_order' => $activity['activity_date_time'],
-        'activity_description' => $activity['details'],
-        'contribution_id' => $activity['custom_' . $this->customFields['linked_contribution']['id']],
-        'membership_id' => $activity['custom_' . $this->customFields['linked_membership']['id']],
-        'multi_purpose' => $activity['custom_' . $this->customFields['multi_purpose']['id']],
-        'order_type' => $activity['custom_' . $this->customFields['order_type']['id']], // Required for lookups prior to export
+        //'Kontakt-Hash' => // CiviCRM Kontakt-Hash
+        //'E-Mail' => // Bulk E-Mail falls vorhanden, ansonsten Primäre E-Mail-Adresse
+        'Salutation' => $contact['individual_prefix'], // Prefix
+        'Firstname' => $contact['first_name'], // First Name
+        'Lastname' => $contact['last_name'], // Last Name
+        //'Birthday' => // Date of Birth
+        'Title' => $contact['formal_title'], // Title
+        'ZIP' => $contact['postal_code'], // ZIP code (primary)
+        'city' => $contact['city'], // City (primary)
+        'Country' => $contact['country'], // Country code (primary)
+        //'Address' => // Street Address AND Supplemental Address (primary)
+        'Contact_ID' => $id, // CiviCRM Contakt-ID
+        //'Telephone' => // phone number (primary)
+        //'PersonID_IMB' => // The old IMB Contact ID – should be filled if contact has an external CiviCRM ID that starts with „IMB-“
+        'Package_id' => '', // to be ignored for daily/regular export
+        'Segment_id' => '', // to be ignored for daily/regular export
+        //'Community_ NL' => // Contact status (added, removed, none) of  Group „Community NL“
+        //'Donation Info' => // Contact status (added, removed, none) of  Group „Donation Info “
+        //'Campaign_Topic' => // fill with external campaign identifiers of the linked survey (linked via activity) (each value only once)
+        //'Petition' => // fill with internal CiviCRM „Survey ID“ if any activity of the contact is connected to a survey  (each value only once)
+
+        // Not required
+        //'co' => $contact['current_employer'],
+        //'strasse' => $contact['street_address'],
+        //'state' => $contact['state_province'],
       );
 
-      // Get the correct output file
-      if (isset($this->files[$fields['order_type']])) {
-        $fileKey = $fields['order_type'];
-      }
-      else {
-        $fileKey = 'default';
-      }
       // Build the row
       $csv = implode(',', array_values($fields));
 
       // Write header on first line
-      if (!$this->files[$fileKey]['hasContent']) {
+      if (!$this->exportFile['hasContent']) {
         $header = implode(',', array_keys($fields));
-        file_put_contents($this->files[$fileKey]['outfile'], $header.PHP_EOL, FILE_APPEND | LOCK_EX);
-        $this->files[$fileKey]['hasContent'] = TRUE;
+        file_put_contents($this->exportFile['outfile'], $header.PHP_EOL, FILE_APPEND | LOCK_EX);
+        $this->exportFile['hasContent'] = TRUE;
       }
 
-      file_put_contents($this->files[$fileKey]['outfile'], $csv.PHP_EOL, FILE_APPEND | LOCK_EX);
+      file_put_contents($this->exportFile['outfile'], $csv.PHP_EOL, FILE_APPEND | LOCK_EX);
     }
     // Set to TRUE on successful export
     $this->_exportComplete = TRUE;
@@ -171,57 +183,20 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
    */
   private function upload() {
     if ($this->_exportComplete) {
-      // Upload each file in sequence.  If one fails record error and move on to the next one.
-      foreach ($this->settings as $orderType => $setting) {
-        $fileData = $this->files[$orderType];
-        // Check if any data was found for each file type
-        if (!$fileData['hasContent']) {
-          continue;
-        }
-
-        // We have data, so upload the file
-        // $fileData['outfile']; local file
-        // $fileData['remote']; remote file
-        $uploader = new CRM_Customexport_Upload($fileData['outfile']);
-        $uploader->setServer($fileData['remote'] . $fileData['outfilename'], TRUE);
-        if ($uploader->upload() != 0) {
-          $this->files[$orderType]['uploaded'] = FALSE;
-          $this->files[$orderType]['uploadError'] = $uploader->getErrorMessage();
-        }
-        else {
-          $this->files[$orderType]['uploaded'] = TRUE;
-        }
+      // Check if any data was found
+      if (!$this->exportFile['hasContent']) {
+        return FALSE;
       }
-    }
-  }
 
-  /**
-   * Set all the activities that we exported to order_exported
-   */
-  private function setOrderExported() {
-    // We set the order_exported for the activity once we get confirmation that the export/upload completed successfully.
-
-    // Get the upload status for each order type and put in an array for lookup later
-    foreach ($this->settings as $orderType => $setting) {
-      $orderUploaded[$orderType] = $this->files[$orderType]['uploaded'];
-    }
-
-    foreach ($this->_activities as $activity) {
-      $orderType = $activity['custom_' . $this->customFields['order_type']['id']];
-      // We need to see if the order_type has been uploaded or not
-      $uploaded = FALSE;
-      if (isset($orderUploaded[$orderType])) {
-        // Has the specific order type been uploaded
-        $uploaded = $orderUploaded[$orderType];
+      // We have data, so upload the file
+      $uploader = new CRM_Customexport_Upload($this->exportFile['outfile']);
+      $uploader->setServer($this->exportFile['remote'] . $this->exportFile['outfilename'], TRUE);
+      if ($uploader->upload() != 0) {
+        $this->exportFile['uploaded'] = FALSE;
+        $this->exportFile['uploadError'] = $uploader->getErrorMessage();
       }
-      elseif (isset($orderUploaded['default'])) {
-        // If the specific order type doesn't exist, it will have been uploaded using the default order_type
-        $uploaded = $orderUploaded['default'];
-      }
-      if ($uploaded) {
-        $params = $activity;
-        $params['custom_' . $this->customFields['order_exported']['id']] = 1;
-        $activities = civicrm_api3('Activity', 'create', $params);
+      else {
+        $this->exportFile['uploaded'] = TRUE;
       }
     }
   }

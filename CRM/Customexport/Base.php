@@ -4,6 +4,7 @@ class CRM_Customexport_Base {
 
   protected $localFilePath; // Path where files are stored locally
   protected $settings; // Settings
+  protected $_exportComplete = FALSE; // Set to TRUE when export has completed
 
   /**
    * Get the settings

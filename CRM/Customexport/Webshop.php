@@ -3,8 +3,6 @@
 class CRM_Customexport_Webshop extends CRM_Customexport_Base {
 
   private $_activities = array();
-
-  private $_exportComplete = FALSE; // Set to true once we've successfully exported
   private $customFields;
 
   const ACTIVITY_NAME = 'Webshop Order';
