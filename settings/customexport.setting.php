@@ -15,4 +15,32 @@ return array(
     'description' => 'Webshop Exports',
     'html_attributes' => array(),
   ),
+  //versandtool_exports
+  'versandtool_exports' => array(
+    'group_name' => 'Customexport Preferences',
+    'group' => 'Customexport',
+    'name' => 'versandtool_exports',
+    'type' => 'String',
+    'html_type' => 'Textarea',
+    'default' => '{"default":{"file":"default","remote":"sftp:\/\/test:test@example.org\/default\/"}}',
+    'add' => '4.6',
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'description' => 'Versandtool Exports',
+    'html_attributes' => array(),
+  ),
+  //versandtool_batchsize
+  'versandtool_batchsize' => array(
+    'group_name' => 'Customexport Preferences',
+    'group' => 'Customexport',
+    'name' => 'versandtool_batchsize',
+    'type' => 'Integer',
+    'html_type' => 'Text',
+    'default' => '1000',
+    'add' => '4.6',
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'description' => 'Number of contacts to process in an iteration (adjust to optimise memory usage/sql queries).  All matching contacts will be exported',
+    'html_attributes' => array(),
+  ),
 );

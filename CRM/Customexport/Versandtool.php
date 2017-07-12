@@ -8,30 +8,16 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
   private $batchOffset; // The current batch offset
   private $totalContacts; // The total number of contacts meeting criteria
   private $exportFile; // Details of the file used for export
-
-  private $customFields;
-
-  function __construct($batchSize = 100) {
+  
+  function __construct($batchSize = NULL) {
     if (!$this->getExportSettings('versandtool_exports')) {
       throw new Exception('Could not load versandtoolExports settings - did you define a default value?');
     };
-    $this->getCustomFields();
-    $this->getLocalFilePath();
-
-    $this->batchSize = $batchSize;
-  }
-
-  /**
-   * Get the metadata for all the custom fields in the group webshop_information
-   */
-  private function getCustomFields() {
-    $customFields = civicrm_api3('CustomField', 'get', array(
-      'custom_group_id' => "webshop_information",
-    ));
-    // Store by name so we can find them easily later
-    foreach ($customFields['values'] as $key => $values) {
-      $this->customFields[$values['name']] = $values;
+    if (!isset($batchSize)) {
+      $this->batchSize = $this->getExportSettings('versandtool_batchsize');
     }
+
+    $this->getLocalFilePath();
   }
 
   /**
