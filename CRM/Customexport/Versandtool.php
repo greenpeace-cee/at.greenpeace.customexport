@@ -8,13 +8,13 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
   private $batchOffset; // The current batch offset
   private $totalContacts; // The total number of contacts meeting criteria
   private $exportFile; // Details of the file used for export
-  
+
   function __construct($batchSize = NULL) {
     if (!$this->getExportSettings('versandtool_exports')) {
       throw new Exception('Could not load versandtoolExports settings - did you define a default value?');
     };
     if (!isset($batchSize)) {
-      $this->batchSize = $this->getExportSettings('versandtool_batchsize');
+      $this->batchSize = CRM_Customexport_Utils::getSettings('versandtool_batchsize');
     }
 
     $this->getLocalFilePath();
@@ -25,7 +25,7 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
    */
   public function export() {
     $this->totalContacts = $this->getContactCount();
-    $this->batchOffset = 0;
+    $this->batchOffset = 1;
 
     while ($this->batchOffset < $this->totalContacts) {
       // Export each batch to csv
@@ -47,6 +47,11 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
 
     // Once all batches exported:
     $this->upload();
+
+    $return['is_error'] = $this->exportFile['uploadError'];
+    $return['message'] = $this->exportFile['uploadErrorMessage'];
+    $return['error_code'] = $this->exportFile['uploadErrorCode'];
+    return $return;
   }
 
   /**
@@ -60,10 +65,7 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
       'do_not_email' => 0,
       'is_opt_out' => 0,
     ));
-    if (empty($contactCount['is_error'])) {
-      return $contactCount['result'];
-    }
-    return FALSE;
+    return $contactCount;
   }
 
   /**
@@ -111,6 +113,7 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
 
     $startContactId = $this->batchOffset;
     $endContactId = $this->batchSize+$this->batchOffset;
+
     $emails = $this->getBulkEmailAddresses($startContactId, $endContactId);
     $addresses = $this->getPrimaryAddresses($startContactId, $endContactId);
     $phones = $this->getPrimaryPhones($startContactId, $endContactId);
@@ -179,7 +182,7 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
     // We sort by is_bulkmail and then is_primary so we don't have to search the whole array,
     //  as we can just match the first one
     $emails = civicrm_api3('Email', 'get', array(
-      'contact_id' => array('BETWEEN' => array($startContactId, $endContactId-$startContactId)),
+      'contact_id' => array('BETWEEN' => array($startContactId, $endContactId)),
       'options' => array('sort' => "contact_id ASC", 'limit' => 0),
     ));
 
@@ -224,7 +227,7 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
   private function getPrimaryPhones($startContactId, $endContactId) {
     $phoneData = array();
     $phones = civicrm_api3('Phone', 'get', array(
-      'contact_id' => array('BETWEEN' => array($startContactId, $endContactId-$startContactId)),
+      'contact_id' => array('BETWEEN' => array($startContactId, $endContactId)),
       'is_primary' => 1,
       'options' => array('limit' => 0),
     ));
@@ -248,7 +251,7 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
     // Get list of postal addresses for contact.
     // We sort by is_primary so we can just match the first one
     $addresses = civicrm_api3('Address', 'get', array(
-      'contact_id' => array('BETWEEN' => array($startContactId, $endContactId-$startContactId)),
+      'contact_id' => array('BETWEEN' => array($startContactId, $endContactId)),
       'is_primary' => 1,
       'options' => array('limit' => 0),
     ));
@@ -278,7 +281,7 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
   private function filterExternalContactIds(&$contacts) {
     foreach ($contacts as $id => $data) {
       if (substr($data['external_identifier'], 0, 4) != 'IMB-') {
-        $contacts['id']['external_identifier'] = '';
+        $contacts['id']['external_identifier'] = NULL;
       }
     }
   }
@@ -303,7 +306,7 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
 SELECT contact_id,status FROM `civicrm_group_contact` gcon 
 WHERE gcon.contact_id BETWEEN %1 AND %2 AND gcon.group_id=%3";
       $params[1] = array($startContactId, 'Integer');
-      $params[2] = array($endContactId-$startContactId, 'Integer');
+      $params[2] = array($endContactId, 'Integer');
       $params[3] = array($group['id'], 'Integer');
       $dao = CRM_Core_DAO::executeQuery($sql,$params);
       while ($dao-fetch()) {
@@ -358,12 +361,15 @@ GROUP BY acon.contact_id";
       // We have data, so upload the file
       $uploader = new CRM_Customexport_Upload($this->exportFile['outfile']);
       $uploader->setServer($this->exportFile['remote'] . $this->exportFile['outfilename'], TRUE);
-      if ($uploader->upload() != 0) {
-        $this->exportFile['uploaded'] = FALSE;
-        $this->exportFile['uploadError'] = $uploader->getErrorMessage();
+      $errorCode = $uploader->upload();
+      $this->exportFile['uploadErrorCode'] = $errorCode;
+      if (!empty($errorCode)) {
+        $this->exportFile['uploadError'] = TRUE;
+        $this->exportFile['uploadErrorMessage'] = $uploader->getErrorMessage();
       }
       else {
-        $this->exportFile['uploaded'] = TRUE;
+        $this->exportFile['uploadError'] = FALSE;
+        $this->exportFile['uploadErrorMessage'] = NULL;
       }
     }
   }

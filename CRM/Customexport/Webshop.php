@@ -4,6 +4,7 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
 
   private $_activities = array();
   private $customFields;
+  private $files;
 
   const ACTIVITY_NAME = 'Webshop Order';
 
@@ -58,10 +59,20 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
     $this->exportToCSV();
     $this->upload();
     $this->setOrderExported();
-    if ($this->_exportComplete) {
-      return TRUE;
+
+    // Once all batches exported:
+    $this->upload();
+
+    // Return all upload errors
+    foreach ($this->files as $orderType => $file) {
+      if ($file['uploadError']) {
+        $return['is_error'] = TRUE;
+      }
+      $return[$orderType]['is_error'] = $file['uploadError'];
+      $return[$orderType]['message'] = $file['uploadErrorMessage'];
+      $return[$orderType]['error_code'] = $file['uploadErrorCode'];
     }
-    return FALSE;
+    return $return;
   }
 
   /**
@@ -201,12 +212,16 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
         // $fileData['remote']; remote file
         $uploader = new CRM_Customexport_Upload($fileData['outfile']);
         $uploader->setServer($fileData['remote'] . $fileData['outfilename'], TRUE);
-        if ($uploader->upload() != 0) {
-          $this->files[$orderType]['uploaded'] = FALSE;
-          $this->files[$orderType]['uploadError'] = $uploader->getErrorMessage();
+
+        $errorCode = $uploader->upload();
+        $this->files[$orderType]['uploadErrorCode'] = $errorCode;
+        if (!empty($errorCode)) {
+          $this->files[$orderType]['uploadError'] = TRUE;
+          $this->files[$orderType]['uploadErrorMessage'] = $uploader->getErrorMessage();
         }
         else {
-          $this->files[$orderType]['uploaded'] = TRUE;
+          $this->files[$orderType]['uploadError'] = FALSE;
+          $this->files[$orderType]['uploadErrorMessage'] = NULL;
         }
       }
     }

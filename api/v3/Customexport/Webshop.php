@@ -23,13 +23,5 @@ function _civicrm_api3_customexport_webshop_spec(&$spec) {
 function civicrm_api3_customexport_webshop($params) {
   $exporter = new CRM_Customexport_Webshop();
   $result = $exporter->export();
-  if (empty($result['is_error'])) {
-    return civicrm_api3_create_success(1, $params, 'Webshop', 'Export');
-  }
-  else {
-    if (!$result['message']) {
-      $result['message'] = 'An error occurred during Webshop Export';
-    }
-    throw new API_Exception(/*errorMessage*/ $result['message'], /*errorCode*/ 1234);
-  }
+  return civicrm_api3_create_success($result, $params, 'Customexport', 'Webshop');
 }

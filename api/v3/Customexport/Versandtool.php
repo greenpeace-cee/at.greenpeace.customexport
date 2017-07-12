@@ -24,12 +24,12 @@ function civicrm_api3_customexport_versandtool($params) {
   $exporter = new CRM_Customexport_Versandtool();
   $result = $exporter->export();
   if (empty($result['is_error'])) {
-    return civicrm_api3_create_success(1, $params, 'Versandtool', 'Export');
+    return civicrm_api3_create_success(1, $params, 'Customexport', 'Versandtool');
   }
   else {
     if (!$result['message']) {
       $result['message'] = 'An error occurred during Versandtool Export';
     }
-    throw new API_Exception(/*errorMessage*/ $result['message'], /*errorCode*/ 1234);
+    throw new API_Exception(/*errorMessage*/ $result['message'], /*errorCode*/ $result['error_code']);
   }
 }
