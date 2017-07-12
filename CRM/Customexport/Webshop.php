@@ -51,7 +51,6 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
    */
   public function export() {
     if (!$this->getValidActivities()) {
-      $result['is_error'] = TRUE;
       $result['message'] = 'No valid activities found for export';
       return $result;
     }
@@ -60,15 +59,9 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
     $this->upload();
     $this->setOrderExported();
 
-    // Once all batches exported:
-    $this->upload();
-
     // Return all upload errors
     foreach ($this->files as $orderType => $file) {
-      if ($file['uploadError']) {
-        $return['is_error'] = TRUE;
-      }
-      $return[$orderType]['is_error'] = $file['uploadError'];
+      $return[$orderType]['is_error'] = isset($file['uploadError']) ? $file['uploadError'] : FALSE;
       $return[$orderType]['message'] = $file['uploadErrorMessage'];
       $return[$orderType]['error_code'] = $file['uploadErrorCode'];
     }
@@ -235,7 +228,7 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
 
     // Get the upload status for each order type and put in an array for lookup later
     foreach ($this->settings as $orderType => $setting) {
-      $orderUploaded[$orderType] = $this->files[$orderType]['uploaded'];
+      $orderUploaded[$orderType] = !$this->files[$orderType]['uploadError'];
     }
 
     foreach ($this->_activities as $activity) {
