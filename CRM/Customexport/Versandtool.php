@@ -27,6 +27,8 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
     $this->totalContacts = $this->getContactCount();
     $this->batchOffset = 1;
 
+    $this->configureOutputFile();
+
     while ($this->batchOffset < $this->totalContacts) {
       // Export each batch to csv
       $this->_exportComplete = FALSE;
@@ -91,12 +93,7 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
     return FALSE;
   }
 
-  /**
-   * Export the activities array to csv file
-   * We export each order_type based on what we find in settings
-   * If default is specified in settings we export all order_types that are not listed separately using this type.
-   */
-  private function exportToCSV() {
+  private function configureOutputFile() {
     // Write to a csv file in tmp dir
     $date = new DateTime();
 
@@ -110,7 +107,14 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
     $this->exportFile['outfilename'] = $this->exportFile['file'] . '_' . $date->format('YmdHis'). '.csv';
     $this->exportFile['outfile'] = $this->localFilePath . '/' . $this->exportFile['outfilename'];
     $this->exportFile['hasContent'] = FALSE; // Set to TRUE once header is written
+  }
 
+  /**
+   * Export the activities array to csv file
+   * We export each order_type based on what we find in settings
+   * If default is specified in settings we export all order_types that are not listed separately using this type.
+   */
+  private function exportToCSV() {
     $startContactId = $this->batchOffset;
     $endContactId = $this->batchSize+$this->batchOffset;
 
@@ -368,6 +372,8 @@ GROUP BY acon.contact_id";
         $this->exportFile['uploadErrorMessage'] = $uploader->getErrorMessage();
       }
       else {
+        // Delete the local copy of the csv file
+        unlink($this->exportFile['outfile']);
         $this->exportFile['uploadError'] = FALSE;
         $this->exportFile['uploadErrorMessage'] = NULL;
       }

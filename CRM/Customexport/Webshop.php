@@ -213,6 +213,8 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
           $this->files[$orderType]['uploadErrorMessage'] = $uploader->getErrorMessage();
         }
         else {
+          // Delete the local copy of the csv file
+          unlink($this->files[$orderType]['outfile']);
           $this->files[$orderType]['uploadError'] = FALSE;
           $this->files[$orderType]['uploadErrorMessage'] = NULL;
         }
