@@ -94,7 +94,7 @@ LEFT JOIN `civicrm_option_value` ON prefix_id = civicrm_option_value.value
 WHERE civicrm_option_value.option_group_id=6 
   AND contact_type='Individual' 
   AND is_opt_out=0 AND do_not_email=0
-  AND contact_id BETWEEN {$startContactId} AND {$endContactId}
+  AND civicrm_contact.id BETWEEN {$startContactId} AND {$endContactId}
   ";
     $dao = CRM_Core_DAO::executeQuery($sql);
 
