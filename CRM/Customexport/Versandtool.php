@@ -311,7 +311,7 @@ WHERE contact_id BETWEEN {$startContactId} AND {$endContactId}
    */
   private function filterExternalContactIds(&$contacts) {
     foreach ($contacts as $id => $data) {
-      if (substr($data['external_identifier'], 0, 4) != 'IMB-') {
+      if (strpos($data['external_identifier'], 'IMB-', 0) !== TRUE) {
         $contacts['id']['external_identifier'] = NULL;
       }
     }
