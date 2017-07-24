@@ -32,11 +32,14 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
     while ($this->batchOffset < $this->totalContacts) {
       // Export each batch to csv
       $this->_exportComplete = FALSE;
+      $starttime = microtime(true);
       if (!$this->getValidContacts($this->batchSize, $this->batchOffset)) {
         $result['is_error'] = TRUE;
         $result['message'] = 'No valid contacts found for export';
         return $result;
       }
+      $time_elapsed_secs = microtime(true) - $starttime; //DEBUG
+      CRM_Core_Error::debug_log_message('contact exec time: '.$time_elapsed_secs); //DEBUG
       $this->exportToCSV();
       if (!$this->_exportComplete) {
         $result['is_error'] = TRUE;
@@ -45,7 +48,6 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
       }
       // Increment batch
       $this->batchOffset = $this->batchOffset + $this->batchSize;
-      break; // DEBUG: Just run one batch
     }
 
     // Once all batches exported:
