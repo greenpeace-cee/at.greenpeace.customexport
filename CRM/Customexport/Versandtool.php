@@ -33,7 +33,10 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
       // Export each batch to csv
       $this->_exportComplete = FALSE;
       $starttime = microtime(true);
-      if (!$this->getValidContacts($this->batchSize, $this->batchOffset)) {
+
+      $startContactId = $this->batchOffset;
+      $endContactId = $this->batchSize+$this->batchOffset;
+      if (!$this->getValidContacts($startContactId, $endContactId)) {
         $result['is_error'] = TRUE;
         $result['message'] = 'No valid contacts found for export';
         return $result;
@@ -82,17 +85,26 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
    *
    * @return bool
    */
-  private function getValidContacts($limit, $offset) {
-    $contacts = civicrm_api3('Contact', 'get', array(
-      'contact_type' => "Individual",
-      'options' => array('limit' => $limit, 'offset' => $offset),
-      'do_not_email' => 0,
-      'is_opt_out' => 0,
-      'return' => 'individual_prefix,first_name,last_name,birth_date,formal_title,postal_code,city,country,external_identifier',
-    ));
+  private function getValidContacts($startContactId, $endContactId) {
+    // Use SQL query for performance
+    $sql = "
+SELECT civicrm_contact.id as contact_id,first_name,last_name,birth_date,formal_title,external_identifier,civicrm_option_value.label as individual_prefix 
+FROM `civicrm_contact` 
+LEFT JOIN `civicrm_option_value` ON prefix_id = civicrm_option_value.value 
+WHERE civicrm_option_value.option_group_id=6 
+  AND contact_type='Individual' 
+  AND is_opt_out=0 AND do_not_email=0
+  AND contact_id BETWEEN {$startContactId} AND {$endContactId}
+  ";
+    $dao = CRM_Core_DAO::executeQuery($sql);
 
-    if (empty($contacts['is_error']) && ($contacts['count'] > 0)) {
-      $this->contactsBatch = $contacts['values'];
+    while ($dao->fetch()) {
+      $this->contactsBatch[$dao->contact_id]['first_name'] = $dao->first_name;
+      $this->contactsBatch[$dao->contact_id]['last_name'] = $dao->last_name;
+      $this->contactsBatch[$dao->contact_id]['birth_date'] = $dao->birth_date;
+      $this->contactsBatch[$dao->contact_id]['formal_title'] = $dao->formal_title;
+      $this->contactsBatch[$dao->contact_id]['external_identifier'] = $dao->external_identifier;
+      $this->contactsBatch[$dao->contact_id]['individual_prefix'] = $dao->individual_prefix;
       return TRUE;
     }
     return FALSE;
@@ -170,10 +182,10 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
         'Lastname' => $contact['last_name'], // Last Name
         'Birthday' => $contact['birth_date'], // Date of Birth
         'Title' => $contact['formal_title'], // Title
-        'ZIP' => $contact['postal_code'], // ZIP code (primary)
-        'City' => $contact['city'], // City (primary)
-        'Country' => $contact['country'], // Country code (primary)
-        'Address' => $addresses[$id], // Street Address AND Supplemental Address (primary)
+        'ZIP' => $addresses[$id]['postcode'], // ZIP code (primary)
+        'City' => $addresses[$id]['city'], // City (primary)
+        'Country' => $addresses[$id]['country'], // Country code (primary)
+        'Address' => $addresses[$id]['street'], // Street Address AND Supplemental Address (primary)
         'Contact_ID' => $id, // CiviCRM Contakt-ID
         'Telephone' => $phones[$id], // phone number (primary)
         'PersonID_IMB' => $contact['external_identifier'], // The old IMB Contact ID – should be filled if contact has an external CiviCRM ID that starts with „IMB-“
@@ -282,11 +294,13 @@ WHERE contact_id BETWEEN {$startContactId} AND {$endContactId}
     // Get list of postal addresses for contact.
     // We use an sql query as API is too slow
     $sql = "
-SELECT contact_id,street_address,supplemental_address_1,supplemental_address_2 
+SELECT contact_id,street_address,supplemental_address_1,supplemental_address_2,postal_code,city,civicrm_country.name
 FROM `civicrm_address` 
+LEFT JOIN `civicrm_country` ON country_id = civicrm_country.id
 WHERE contact_id BETWEEN {$startContactId} AND {$endContactId} 
   AND is_primary=1
 ";
+
     $dao = CRM_Core_DAO::executeQuery($sql);
     $addressData = array();
 
@@ -299,7 +313,10 @@ WHERE contact_id BETWEEN {$startContactId} AND {$endContactId}
       if (!empty($dao->supplemental_address_2)) {
         $newAddress = $dao . ', ' . $dao->supplemental_address_2;
       }
-      $addressData[$dao->contact_id] = $newAddress;
+      $addressData[$dao->contact_id]['street'] = $newAddress;
+      $addressData[$dao->contact_id]['postcode'] = $dao->postal_code;
+      $addressData[$dao->contact_id]['city'] = $dao->city;
+      $addressData[$dao->contact_id]['country'] = $dao->country;
     }
     return $addressData;
   }
