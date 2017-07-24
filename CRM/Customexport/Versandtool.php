@@ -257,17 +257,15 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
    */
   private function getPrimaryPhones($startContactId, $endContactId) {
     $phoneData = array();
-    $phones = civicrm_api3('Phone', 'get', array(
-      'contact_id' => array('BETWEEN' => array($startContactId, $endContactId)),
-      'is_primary' => 1,
-      'options' => array('limit' => 0),
-      'return' => 'contact_id,phone',
-    ));
-
-    if ($phones['count'] > 0) {
-      foreach ($phones['values'] as $id => $phone) {
-        $phoneData[$phone['contact_id']] = $phone['phone'];
-      }
+    $sql = "
+SELECT contact_id,phone 
+FROM `civicrm_phone` 
+WHERE contact_id BETWEEN {$startContactId} AND {$endContactId} 
+  AND is_primary=1
+";
+    $dao = CRM_Core_DAO::executeQuery($sql);
+    while ($dao-fetch()) {
+      $phoneData[$dao->contact_id] = $dao->phone;
     }
     return $phoneData;
   }
