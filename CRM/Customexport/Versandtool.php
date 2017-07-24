@@ -294,26 +294,17 @@ WHERE contact_id BETWEEN {$startContactId} AND {$endContactId}
     // Get list of postal addresses for contact.
     // We use an sql query as API is too slow
     $sql = "
-SELECT contact_id,street_address,supplemental_address_1,supplemental_address_2,postal_code,city,civicrm_country.name
+SELECT contact_id,CONCAT_WS(',',street_address,supplemental_address_1,supplemental_address_2) AS street,postal_code,city,civicrm_country.name
 FROM `civicrm_address` 
 LEFT JOIN `civicrm_country` ON country_id = civicrm_country.id
 WHERE contact_id BETWEEN {$startContactId} AND {$endContactId} 
   AND is_primary=1
 ";
-
     $dao = CRM_Core_DAO::executeQuery($sql);
     $addressData = array();
 
     while ($dao->fetch()) {
-      $newAddress = $dao->street_address;
-      // Append supplemental address fields separated by commas if defined
-      if (!empty($dao->supplemental_address_1)) {
-        $newAddress = $dao . ', ' . $dao->supplemental_address_1;
-      }
-      if (!empty($dao->supplemental_address_2)) {
-        $newAddress = $dao . ', ' . $dao->supplemental_address_2;
-      }
-      $addressData[$dao->contact_id]['street'] = $newAddress;
+      $addressData[$dao->contact_id]['street'] = $dao->street;
       $addressData[$dao->contact_id]['postcode'] = $dao->postal_code;
       $addressData[$dao->contact_id]['city'] = $dao->city;
       $addressData[$dao->contact_id]['country'] = $dao->country;
