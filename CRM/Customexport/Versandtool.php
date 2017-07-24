@@ -264,7 +264,7 @@ WHERE contact_id BETWEEN {$startContactId} AND {$endContactId}
   AND is_primary=1
 ";
     $dao = CRM_Core_DAO::executeQuery($sql);
-    while ($dao-fetch()) {
+    while ($dao->fetch()) {
       $phoneData[$dao->contact_id] = $dao->phone;
     }
     return $phoneData;
