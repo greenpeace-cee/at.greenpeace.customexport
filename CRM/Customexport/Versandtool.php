@@ -87,6 +87,7 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
       'options' => array('limit' => $limit, 'offset' => $offset),
       'do_not_email' => 0,
       'is_opt_out' => 0,
+      'return' => 'individual_prefix,first_name,last_name,birth_date,formal_title,postal_code,city,country,external_identifier',
     ));
 
     if (empty($contacts['is_error']) && ($contacts['count'] > 0)) {
@@ -213,6 +214,7 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
     $emails = civicrm_api3('Email', 'get', array(
       'contact_id' => array('BETWEEN' => array($startContactId, $endContactId)),
       'options' => array('sort' => "contact_id ASC", 'limit' => 0),
+      'return' => 'contact_id,is_bulkmail,is_primary,email',
     ));
 
     $emailData = array();
@@ -259,6 +261,7 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
       'contact_id' => array('BETWEEN' => array($startContactId, $endContactId)),
       'is_primary' => 1,
       'options' => array('limit' => 0),
+      'return' => 'contact_id,phone',
     ));
 
     if ($phones['count'] > 0) {
@@ -283,6 +286,7 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
       'contact_id' => array('BETWEEN' => array($startContactId, $endContactId)),
       'is_primary' => 1,
       'options' => array('limit' => 0),
+      'return' => "street_address,supplemental_address_1,supplemental_address_2",
     ));
     $addressData = array();
     if ($addresses['count'] > 0) {
