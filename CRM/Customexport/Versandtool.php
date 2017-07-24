@@ -159,11 +159,11 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
       );
 
       // Build the row
-      $csv = implode(',', array_values($fields));
+      $csv = implode(';', array_values($fields));
 
       // Write header on first line
       if (!$this->exportFile['hasContent']) {
-        $header = implode(',', array_keys($fields));
+        $header = implode(';', array_keys($fields));
         file_put_contents($this->exportFile['outfile'], $header.PHP_EOL, FILE_APPEND | LOCK_EX);
         $this->exportFile['hasContent'] = TRUE;
       }
