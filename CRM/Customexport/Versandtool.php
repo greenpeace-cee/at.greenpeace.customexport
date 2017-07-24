@@ -92,7 +92,7 @@ FROM `civicrm_contact`
 LEFT JOIN `civicrm_option_value` ON prefix_id = civicrm_option_value.value 
 WHERE civicrm_option_value.option_group_id=6 
   AND contact_type='Individual' 
-  AND is_opt_out=0 AND do_not_email=0
+  AND is_opt_out=0 AND do_not_email=0 AND is_deleted=0 AND is_deceased=0
   AND civicrm_contact.id BETWEEN {$startContactId} AND {$endContactId}
   ";
     $dao = CRM_Core_DAO::executeQuery($sql);
@@ -189,7 +189,7 @@ WHERE civicrm_option_value.option_group_id=6
         'PersonID_IMB' => $contact['external_identifier'], // The old IMB Contact ID – should be filled if contact has an external CiviCRM ID that starts with „IMB-“
         'Package_id' => '', // to be ignored for daily/regular export
         'Segment_id' => '', // to be ignored for daily/regular export
-        'Community_ NL' => $groupC[$id], // Contact status (added, removed, none) of  Group „Community NL“
+        'Community_NL' => $groupC[$id], // Contact status (added, removed, none) of  Group „Community NL“
         'Donation Info' => $groupD[$id], // Contact status (added, removed, none) of  Group „Donation Info “
         'Campaign_Topic' => $surveys[$id]['external_identifier'], // fill with external campaign identifiers of the linked survey (linked via activity) (each value only once)
         'Petition' => $surveys[$id]['survey_id'], // fill with internal CiviCRM „Survey ID“ if any activity of the contact is connected to a survey  (each value only once)
@@ -329,14 +329,14 @@ WHERE contact_id BETWEEN {$startContactId} AND {$endContactId}
    * Returns an array of [contact_id]=>group status (eg. Added)
    * @param $startContactId
    * @param $endContactId
-   * @param $groupName
+   * @param $groupTitle
    *
    * @return array
    */
-  private function getContactGroupStatus($startContactId, $endContactId, $groupName) {
+  private function getContactGroupStatus($startContactId, $endContactId, $groupTitle) {
     // Get the group Id
     $group = civicrm_api3('Group', 'get', array(
-      'name' => $groupName,
+      'title' => $groupTitle,
       'options' => array('limit' => 1),
     ));
     $groups = array();
