@@ -48,6 +48,7 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
       }
       // Increment batch
       $this->batchOffset = $this->batchOffset + $this->batchSize;
+      break; // DEBUG
     }
 
     // Once all batches exported:
