@@ -45,6 +45,7 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
       }
       // Increment batch
       $this->batchOffset = $this->batchOffset + $this->batchSize;
+      break; // DEBUG: Just run one batch
     }
 
     // Once all batches exported:
@@ -118,13 +119,35 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
     $startContactId = $this->batchOffset;
     $endContactId = $this->batchSize+$this->batchOffset;
 
+    $starttime = microtime(true);
     $emails = $this->getBulkEmailAddresses($startContactId, $endContactId);
+    $time_elapsed_secs = microtime(true) - $starttime; //DEBUG
+    CRM_Core_Error::debug_log_message('email exec time: '.$time_elapsed_secs); //DEBUG
+    $starttime = microtime(true);
     $addresses = $this->getPrimaryAddresses($startContactId, $endContactId);
+    $time_elapsed_secs = microtime(true) - $starttime; //DEBUG
+    CRM_Core_Error::debug_log_message('address exec time: '.$time_elapsed_secs); //DEBUG
+    $starttime = microtime(true);
     $phones = $this->getPrimaryPhones($startContactId, $endContactId);
+    $time_elapsed_secs = microtime(true) - $starttime; //DEBUG
+    CRM_Core_Error::debug_log_message('phone exec time: '.$time_elapsed_secs); //DEBUG
+    $starttime = microtime(true);
     $groupC = $this->getContactGroupStatus($startContactId, $endContactId,'Community NL');
+    $time_elapsed_secs = microtime(true) - $starttime; //DEBUG
+    CRM_Core_Error::debug_log_message('groupnl exec time: '.$time_elapsed_secs); //DEBUG
+    $starttime = microtime(true);
     $groupD = $this->getContactGroupStatus($startContactId, $endContactId,'Donation Info');
+    $time_elapsed_secs = microtime(true) - $starttime; //DEBUG
+    CRM_Core_Error::debug_log_message('groupdon exec time: '.$time_elapsed_secs); //DEBUG
+    $starttime = microtime(true);
     $this->filterExternalContactIds($this->contactsBatch);
+    $time_elapsed_secs = microtime(true) - $starttime; //DEBUG
+    CRM_Core_Error::debug_log_message('filter exec time: '.$time_elapsed_secs); //DEBUG
+    $starttime = microtime(true);
     $surveys = $this->getContactSurveys($startContactId, $endContactId);
+    $time_elapsed_secs = microtime(true) - $starttime; //DEBUG
+    CRM_Core_Error::debug_log_message('surv exec time: '.$time_elapsed_secs); //DEBUG
+
 
     foreach($this->contactsBatch as $id => $contact) {
       // Build an array of values for export
