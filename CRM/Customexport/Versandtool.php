@@ -281,26 +281,26 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
    */
   private function getPrimaryAddresses($startContactId, $endContactId) {
     // Get list of postal addresses for contact.
-    // We sort by is_primary so we can just match the first one
-    $addresses = civicrm_api3('Address', 'get', array(
-      'contact_id' => array('BETWEEN' => array($startContactId, $endContactId)),
-      'is_primary' => 1,
-      'options' => array('limit' => 0),
-      'return' => "street_address,supplemental_address_1,supplemental_address_2",
-    ));
+    // We use an sql query as API is too slow
+    $sql = "
+SELECT contact_id,street_address,supplemental_address_1,supplemental_address_2 
+FROM `civicrm_address` 
+WHERE contact_id BETWEEN {$startContactId} AND {$endContactId} 
+  AND is_primary=1
+";
+    $dao = CRM_Core_DAO::executeQuery($sql);
     $addressData = array();
-    if ($addresses['count'] > 0) {
-      foreach ($addresses['values'] as $id => $address) {
-        $newAddress = $address['street_address'];
-        // Append supplemental address fields separated by commas if defined
-        if (!empty($address['supplemental_address_1'])) {
-          $newAddress = $address . ', ' . $address['supplemental_address_1'];
-        }
-        if (!empty($address['supplemental_address_2'])) {
-          $newAddress = $address . ', ' . $address['supplemental_address_2'];
-        }
-        $addressData[$address['contact_id']] = $newAddress;
+
+    while ($dao->fetch()) {
+      $newAddress = $dao->street_address;
+      // Append supplemental address fields separated by commas if defined
+      if (!empty($dao->supplemental_address_1)) {
+        $newAddress = $dao . ', ' . $dao->supplemental_address_1;
       }
+      if (!empty($dao->supplemental_address_2)) {
+        $newAddress = $dao . ', ' . $dao->supplemental_address_2;
+      }
+      $addressData[$dao->contact_id] = $newAddress;
     }
     return $addressData;
   }
@@ -342,7 +342,7 @@ WHERE gcon.contact_id BETWEEN %1 AND %2 AND gcon.group_id=%3";
       $params[2] = array($endContactId, 'Integer');
       $params[3] = array($group['id'], 'Integer');
       $dao = CRM_Core_DAO::executeQuery($sql,$params);
-      while ($dao-fetch()) {
+      while ($dao->fetch()) {
         $groups[$dao->contact_id] = $dao->status;
       }
     }
