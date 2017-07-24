@@ -1,5 +1,8 @@
 # de.systopia.customexport
 
+## Requirements
+Requires phpseclib for sftp
+
 ## Webshop Export
 Export all activities of type webshop to csv file, upload via sftp.
 
