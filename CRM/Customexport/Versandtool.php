@@ -105,9 +105,8 @@ WHERE civicrm_option_value.option_group_id=6
       $this->contactsBatch[$dao->contact_id]['formal_title'] = $dao->formal_title;
       $this->contactsBatch[$dao->contact_id]['external_identifier'] = $dao->external_identifier;
       $this->contactsBatch[$dao->contact_id]['individual_prefix'] = $dao->individual_prefix;
-      return TRUE;
     }
-    return FALSE;
+    return TRUE;
   }
 
   private function configureOutputFile() {
