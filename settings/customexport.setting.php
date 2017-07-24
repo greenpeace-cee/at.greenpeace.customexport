@@ -36,7 +36,7 @@ return array(
     'name' => 'versandtool_batchsize',
     'type' => 'Integer',
     'html_type' => 'Text',
-    'default' => '1000',
+    'default' => '100000',
     'add' => '4.6',
     'is_domain' => 1,
     'is_contact' => 0,

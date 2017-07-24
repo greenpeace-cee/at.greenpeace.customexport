@@ -291,6 +291,7 @@ WHERE contact_id BETWEEN {$startContactId} AND {$endContactId}
   private function getPrimaryAddresses($startContactId, $endContactId) {
     // Get list of postal addresses for contact.
     // We use an sql query as API is too slow
+    // FIXME: This query takes FAR too long to execute (30secs on 100000 contacts, compared with eg. phone which takes 0.06secs)
     $sql = "
 SELECT contact_id,CONCAT_WS(',',street_address,supplemental_address_1,supplemental_address_2) AS street,postal_code,city,civicrm_country.name
 FROM `civicrm_address` 
