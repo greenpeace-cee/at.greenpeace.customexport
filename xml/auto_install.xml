@@ -12,7 +12,7 @@
       <help_post></help_post>
       <weight>1</weight>
       <is_active>1</is_active>
-      <table_name>civicrm_value_webshop_information_16</table_name>
+      <table_name>civicrm_value_webshop_information</table_name>
       <is_multiple>0</is_multiple>
       <collapse_adv_display>1</collapse_adv_display>
       <is_reserved>0</is_reserved>
