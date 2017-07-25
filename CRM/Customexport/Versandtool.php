@@ -28,6 +28,8 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
    */
   function sql() {
     $sql[]="DROP TABLE IF EXISTS temp_versandtool;";
+    // The following query uses GROUP BY c.id because phone.is_primary is not unique and can return multiple phone numbers
+    // This causes duplicate contact Id's.
     $sql[]="
 CREATE TABLE IF NOT EXISTS temp_versandtool
     (
@@ -80,6 +82,7 @@ CREATE TABLE IF NOT EXISTS temp_versandtool
       LEFT JOIN civicrm_country ctry 			ON address.country_id=ctry.id
       LEFT JOIN civicrm_option_value v 		ON v.value=c.prefix_id AND v.option_group_id= (SELECT id FROM civicrm_option_group WHERE name ='individual_prefix') 
     WHERE c.do_not_email=0 AND c.is_opt_out=0 and c.contact_type='Individual' AND email.email IS NOT NULL AND c.is_deceased=0 AND c.is_deleted=0
+    GROUP BY c.id
     ;
     ";
 
