@@ -19,7 +19,7 @@ class CRM_Customexport_WelcomepackageEmail extends CRM_Customexport_Base {
    * @return array
    */
   function keys() {
-    return array("id", "titel", "anrede", "vorname", "nachname", "co", "strasse", "plz", "ort", "postfach", "land", "kundennummer");
+    return array("contact_id");
   }
 
   /**
