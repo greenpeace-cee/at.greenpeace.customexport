@@ -32,4 +32,24 @@ class CRM_Customexport_Base {
     $this->localFilePath = sys_get_temp_dir(); // FIXME: May want to change path
   }
 
+  protected function stripSQLComments($sql) {
+    // Commented version
+    $sqlComments = '@
+        (([\'"]).*?[^\\\]\2) # $1 : Skip single & double quoted expressions
+        |(                   # $3 : Match comments
+            (?:\#|--).*?$    # - Single line comments
+            |                # - Multi line (nested) comments
+             /\*             #   . comment open marker
+                (?: [^/*]    #   . non comment-marker characters
+                    |/(?!\*) #   . ! not a comment open
+                    |\*(?!/) #   . ! not a comment close
+                    |(?R)    #   . recursive case
+                )*           #   . repeat eventually
+            \*\/             #   . comment close marker
+        )
+        @msx';
+
+    $uncommentedSQL = trim( preg_replace( $sqlComments, '$1', $sql ) );
+    return $uncommentedSQL;
+  }
 }

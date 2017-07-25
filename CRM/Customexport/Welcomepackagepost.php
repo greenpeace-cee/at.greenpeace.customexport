@@ -40,6 +40,7 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
    */
   private function doQuery() {
     $sql = $this->sql();
+    CRM_Core_Error::debug_log_message($sql);
     $dao = CRM_Core_DAO::executeQuery($sql);
 
     while ($dao->fetch()) {
@@ -109,7 +110,7 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
    * The actual query
    */
   private function sql() {
-    return "
+    $sql = "
 # *******#
 #   OUT  #
 # *******#
@@ -153,7 +154,7 @@ CREATE TEMPORARY TABLE IF NOT EXISTS temp_welcome_delete AS
 			
 			UNION ALL
 			
-            #OUT: Major Donors
+      #OUT: Major Donors
 			SELECT cb.contact_id
 			FROM civicrm_contribution AS cb 
 			WHERE receive_date >= NOW() - INTERVAL 1 YEAR
@@ -243,5 +244,7 @@ FROM temp_welcome w
 	LEFT JOIN civicrm_country ctry 			ON address.country_id=ctry.id
   LEFT JOIN civicrm_option_value v 		ON v.value=c.prefix_id AND v.option_group_id=6
     ";
+
+    return $this->stripSQLComments($sql);
   }
 }
