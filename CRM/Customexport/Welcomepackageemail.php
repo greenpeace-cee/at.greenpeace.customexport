@@ -36,8 +36,9 @@ class CRM_Customexport_WelcomepackageEmail extends CRM_Customexport_Base {
     $sql[]="
 CREATE TABLE IF NOT EXISTS temp_welcome AS
 	(
-  SELECT DISTINCT 
-        c.hash          AS Kontakthash
+  SELECT DISTINCT
+        c.id            AS contact_id 
+      , c.hash          AS Kontakthash
       , email.email 		AS Email
       , 0 					AS keep_contact
 	FROM civicrm_contact c
@@ -47,7 +48,7 @@ CREATE TABLE IF NOT EXISTS temp_welcome AS
     );
     ";
 
-    $sql="ALTER TABLE temp_welcome ADD PRIMARY KEY (contact_id);";
+    $sql[]="ALTER TABLE temp_welcome ADD PRIMARY KEY (contact_id);";
 
 /*#Table with all contacts, which should not receive any welcome mail*/
     $sql[]="DROP TABLE IF EXISTS temp_welcome_delete;";
@@ -102,7 +103,7 @@ DELETE
 FROM temp_welcome
 WHERE keep_contact=0 AND contact_id IN (SELECT contact_id FROM temp_welcome_delete)
 ;
-";
+    ";
 
 /*# *******#
 #   IN   #
@@ -151,8 +152,8 @@ SET @CiviCampaignID:= (SELECT id FROM civicrm_campaign
     ";
 
     $sql[]="
-SELECT hash,email
-FROM temp_welcome
+SELECT Kontakthash,Email
+FROM temp_welcome;
     ";
 
     return $sql;
