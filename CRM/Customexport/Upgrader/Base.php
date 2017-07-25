@@ -45,7 +45,7 @@ class CRM_Customexport_Upgrader_Base {
     if (!self::$instance) {
       // FIXME auto-generate
       self::$instance = new CRM_Customexport_Upgrader(
-        'de.systopia.customexport',
+        'at.greenpeace.customexport',
         realpath(__DIR__ . '/../../../')
       );
     }

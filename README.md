@@ -1,4 +1,4 @@
-# de.systopia.customexport
+# at.greenpeace.customexport
 
 ## Requirements
 Requires phpseclib for sftp

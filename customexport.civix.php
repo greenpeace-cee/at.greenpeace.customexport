@@ -190,7 +190,7 @@ function _customexport_civix_civicrm_managed(&$entities) {
     $es = include $file;
     foreach ($es as $e) {
       if (empty($e['module'])) {
-        $e['module'] = 'de.systopia.customexport';
+        $e['module'] = 'at.greenpeace.customexport';
       }
       $entities[] = $e;
       if (empty($e['params']['version'])) {
@@ -222,7 +222,7 @@ function _customexport_civix_civicrm_caseTypes(&$caseTypes) {
       // throw new CRM_Core_Exception($errorMessage);
     }
     $caseTypes[$name] = array(
-      'module' => 'de.systopia.customexport',
+      'module' => 'at.greenpeace.customexport',
       'name' => $name,
       'file' => $file,
     );
@@ -248,7 +248,7 @@ function _customexport_civix_civicrm_angularModules(&$angularModules) {
     $name = preg_replace(':\.ang\.php$:', '', basename($file));
     $module = include $file;
     if (empty($module['ext'])) {
-      $module['ext'] = 'de.systopia.customexport';
+      $module['ext'] = 'at.greenpeace.customexport';
     }
     $angularModules[$name] = $module;
   }

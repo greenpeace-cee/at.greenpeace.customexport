@@ -1,6 +1,6 @@
 <?php
 /*-------------------------------------------------------+
-| SYSTOPIA - Contact Inactive                            |
+| SYSTOPIA - Custom Export for Greenpeace                |
 | Copyright (C) 2017 SYSTOPIA                            |
 | Author: M. Wire (mjw@mjwconsult.co.uk)                 |
 | http://www.systopia.de/                                |
@@ -13,6 +13,7 @@
 | copyright header is strictly prohibited without        |
 | written permission from the original author(s).        |
 +--------------------------------------------------------*/
+
 
 class CRM_Customexport_Utils {
   CONST PREFERENCES_NAME = 'Customexport Preferences';
