@@ -61,28 +61,27 @@ abstract class CRM_Customexport_Base {
    * @param string $method
    */
   protected function upload() {
-    if ($this->_exportComplete) {
-      // Check if any data was found
-      if (!$this->exportFile['hasContent']) {
-        return FALSE;
-      }
-
-      // We have data, so upload the file
-      $uploader = new CRM_Customexport_Upload($this->exportFile['outfile']);
-      $uploader->setServer($this->exportFile['remote'] . $this->exportFile['outfilename'], TRUE);
-      $errorCode = $uploader->upload();
-      $this->exportFile['uploadErrorCode'] = $errorCode;
-      if (!empty($errorCode)) {
-        $this->exportFile['uploadError'] = TRUE;
-        $this->exportFile['uploadErrorMessage'] = $uploader->getErrorMessage();
-      }
-      else {
-        // Delete the local copy of the csv file
-        unlink($this->exportFile['outfile']);
-        $this->exportFile['uploadError'] = FALSE;
-        $this->exportFile['uploadErrorMessage'] = NULL;
-      }
+    // Check if any data was found
+    if (!$this->exportFile['hasContent']) {
+      return FALSE;
     }
+
+    // We have data, so upload the file
+    $uploader = new CRM_Customexport_Upload($this->exportFile['outfile']);
+    $uploader->setServer($this->exportFile['remote'] . $this->exportFile['outfilename'], TRUE);
+    $errorCode = $uploader->upload();
+    $this->exportFile['uploadErrorCode'] = $errorCode;
+    if (!empty($errorCode)) {
+      $this->exportFile['uploadError'] = TRUE;
+      $this->exportFile['uploadErrorMessage'] = $uploader->getErrorMessage();
+    }
+    else {
+      // Delete the local copy of the csv file
+      unlink($this->exportFile['outfile']);
+      $this->exportFile['uploadError'] = FALSE;
+      $this->exportFile['uploadErrorMessage'] = NULL;
+    }
+    return TRUE;
   }
 
   protected function configureOutputFile() {
@@ -111,11 +110,15 @@ abstract class CRM_Customexport_Base {
 
     $this->exportToCSV();
     // Once all batches exported:
-    $this->upload();
-
-    $return['is_error'] = $this->exportFile['uploadError'];
-    $return['message'] = $this->exportFile['uploadErrorMessage'];
-    $return['error_code'] = $this->exportFile['uploadErrorCode'];
+    if ($this->upload()) {
+      $return['is_error'] = $this->exportFile['uploadError'];
+      $return['message'] = $this->exportFile['uploadErrorMessage'];
+      $return['error_code'] = $this->exportFile['uploadErrorCode'];
+    }
+    else {
+      $return['is_error'] = TRUE;
+      $return['message'] = 'No data available for upload';
+    }
     return $return;
   }
 

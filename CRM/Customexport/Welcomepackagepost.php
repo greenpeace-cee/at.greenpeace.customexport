@@ -11,7 +11,7 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
   }
 
   public function export() {
-    parent::export();
+    return parent::export();
   }
 
   /**
