@@ -147,8 +147,17 @@ abstract class CRM_Customexport_Base {
   protected function doQuery() {
     $sql = $this->sql();
 
-    CRM_Core_Error::debug_log_message($sql);
-    $dao = CRM_Core_DAO::executeQuery($sql);
+    if (is_array($sql)) {
+      foreach ($sql as $query) {
+        CRM_Core_Error::debug_log_message($sql);
+        $dao = CRM_Core_DAO::executeQuery($query);
+      }
+    }
+    else {
+      CRM_Core_Error::debug_log_message($sql);
+      $dao = CRM_Core_DAO::executeQuery($sql);
+    }
+
     $dao->_get_keys();
 
     $keys = $this->keys();
