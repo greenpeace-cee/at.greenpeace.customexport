@@ -35,27 +35,6 @@ abstract class CRM_Customexport_Base {
     $this->localFilePath = sys_get_temp_dir(); // FIXME: May want to change path
   }
 
-  protected function stripSQLComments($sql) {
-    // Commented version
-    $sqlComments = '@
-        (([\'"]).*?[^\\\]\2) # $1 : Skip single & double quoted expressions
-        |(                   # $3 : Match comments
-            (?:\#|--).*?$    # - Single line comments
-            |                # - Multi line (nested) comments
-             /\*             #   . comment open marker
-                (?: [^/*]    #   . non comment-marker characters
-                    |/(?!\*) #   . ! not a comment open
-                    |\*(?!/) #   . ! not a comment close
-                    |(?R)    #   . recursive case
-                )*           #   . repeat eventually
-            \*\/             #   . comment close marker
-        )
-        @msx';
-
-    $uncommentedSQL = trim( preg_replace( $sqlComments, '$1', $sql ) );
-    return $uncommentedSQL;
-  }
-
   /**
    * Export the lines array to csv file
    */
@@ -149,7 +128,7 @@ abstract class CRM_Customexport_Base {
 
     if (is_array($sql)) {
       foreach ($sql as $query) {
-        CRM_Core_Error::debug_log_message($sql);
+        CRM_Core_Error::debug_log_message(print_r($sql,TRUE));
         $dao = CRM_Core_DAO::executeQuery($query);
       }
     }

@@ -173,7 +173,5 @@ FROM temp_welcome w
   LEFT JOIN civicrm_option_value v 		ON v.value=c.prefix_id AND v.option_group_id=6;
     ";
     return $sql;
-
-    return $this->stripSQLComments($sql);
   }
 }
