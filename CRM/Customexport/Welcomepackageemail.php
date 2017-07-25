@@ -19,7 +19,7 @@ class CRM_Customexport_WelcomepackageEmail extends CRM_Customexport_Base {
    * @return array
    */
   function keys() {
-    return array("contact_id");
+    return array('Kontakthash', 'Email');
   }
 
   /**
@@ -34,10 +34,12 @@ class CRM_Customexport_WelcomepackageEmail extends CRM_Customexport_Base {
     #OUT: deceased, deleted, do not email, no empty emailaddress*/
     $sql="DROP TABLE IF EXISTS temp_welcome;";
     $sql="
-CREATE TEMPORARY TABLE IF NOT EXISTS temp_welcome AS
+CREATE TABLE IF NOT EXISTS temp_welcome AS
 	(
-  SELECT DISTINCT c.id AS contact_id
-        , 0 AS keep_contact
+  SELECT DISTINCT 
+        c.hash          AS Kontakthash
+      , email.email 		AS Email
+      , 0 					AS keep_contact
 	FROM civicrm_contact c
 		LEFT JOIN civicrm_email email ON email.contact_id=c.id  AND is_primary=1
 	WHERE c.is_deceased=0 AND c.is_deleted=0
@@ -50,7 +52,7 @@ CREATE TEMPORARY TABLE IF NOT EXISTS temp_welcome AS
 /*#Table with all contacts, which should not receive any welcome mail*/
     $sql="DROP TABLE IF EXISTS temp_welcome_delete;";
     $sql="
-CREATE TEMPORARY TABLE IF NOT EXISTS temp_welcome_delete AS
+CREATE TABLE IF NOT EXISTS temp_welcome_delete AS
 	(
   SELECT DISTINCT contact_id
     FROM (
@@ -110,7 +112,7 @@ WHERE keep_contact=0 AND contact_id IN (SELECT contact_id FROM temp_welcome_dele
 #IN: Membership Current/ Paused, Sepa RCUR / FRST, join date in last 6 months*/
     $sql="DROP TABLE IF EXISTS temp_welcome_keep;";
     $sql="
-CREATE TEMPORARY TABLE IF NOT EXISTS temp_welcome_keep AS
+CREATE TABLE IF NOT EXISTS temp_welcome_keep AS
 	(
   SELECT DISTINCT contact_id
 	FROM civicrm_membership AS m
