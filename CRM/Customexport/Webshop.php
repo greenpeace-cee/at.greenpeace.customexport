@@ -85,6 +85,8 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
       'activity_type_id' => $this->activityTypeId,
       'custom_'.$this->customFields['payment_received']['id'] => 1,
       'custom_'.$this->customFields['order_exported']['id'] => 0,
+      'options' => array('limit' => 0),
+
     ));
 
     if (empty($activities['is_error']) && ($activities['count'] > 0)) {
@@ -129,7 +131,6 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
 
       $contact = $sourceContacts[$activity['source_contact_id']];
 
-
       $fields = array(
         'id' => $id,
         'titel' => $contact['formal_title'],
@@ -145,7 +146,7 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
         //'zeilgruppe_id' =>
         //'zielgruppe' =>
         //'paket' =>
-        'kundennummer' => $contact['id'],
+        'kundennummer' => $this->formatKundennummer(isset($activity['campaign_id']) ? $activity['campaign_id'] : 0, $contact['id']),
         //'sepa_belegart' =>
         //'iban_empfaenger' =>
         //'bic_empfaenger' =>
@@ -183,6 +184,12 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
     }
     // Set to TRUE on successful export
     $this->_exportComplete = TRUE;
+  }
+
+  function formatKundennummer($campaignId, $contactId) {
+    return str_pad($campaignId, 4, '0', STR_PAD_LEFT)
+      . 'C'
+      . str_pad($contactId, 9, '0', STR_PAD_LEFT);
   }
 
   /**

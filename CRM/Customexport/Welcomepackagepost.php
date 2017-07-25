@@ -163,7 +163,7 @@ SELECT 	w.contact_id 			AS id
 		, address.city 			AS ort
         , NULL 					AS postfach
         , ctry.iso_code 		AS land
-        , CONCAT(@CiviCampaignID,'C',LPAD(w.contact_id, 9, '0')) 
+        , CONCAT(LPAD(@CiviCampaignID,4,'0'),'C',LPAD(w.contact_id, 9, '0')) 
 								AS kundennummer
 FROM temp_welcome w
 	LEFT JOIN civicrm_contact c 			ON c.id=w.contact_id
