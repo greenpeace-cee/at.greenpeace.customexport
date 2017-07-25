@@ -158,7 +158,7 @@ FROM temp_welcome w
 	LEFT JOIN civicrm_address address 		ON address.contact_id=c.id AND is_primary=1
 	LEFT JOIN civicrm_value_address_statistics address_stat ON address_stat.entity_id=address.id 
 	LEFT JOIN civicrm_country ctry 			ON address.country_id=ctry.id
-  LEFT JOIN civicrm_option_value v 		ON v.value=c.prefix_id AND v.option_group_id=6
+  LEFT JOIN civicrm_option_value v 		ON v.value=c.prefix_id AND v.option_group_id=6;
     ";
 
     return $this->stripSQLComments($sql);
