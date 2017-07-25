@@ -43,4 +43,32 @@ return array(
     'description' => 'Number of contacts to process in an iteration (adjust to optimise memory usage/sql queries).  All matching contacts will be exported',
     'html_attributes' => array(),
   ),
+  //welcomepackagepost_exports
+  'welcomepackagepost_exports' => array(
+    'group_name' => 'Customexport Preferences',
+    'group' => 'Customexport',
+    'name' => 'welcomepackagepost_exports',
+    'type' => 'String',
+    'html_type' => 'Textarea',
+    'default' => '{"default":{"file":"welcomepackagepost","remote":"sftp:\/\/test:test@example.org\/default\/"}}',
+    'add' => '4.6',
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'description' => 'WelcomePackagePost Exports',
+    'html_attributes' => array(),
+  ),
+  //welcomepackageemail_exports
+  'welcomepackageemail_exports' => array(
+    'group_name' => 'Customexport Preferences',
+    'group' => 'Customexport',
+    'name' => 'welcomepackageemail_exports',
+    'type' => 'String',
+    'html_type' => 'Textarea',
+    'default' => '{"default":{"file":"welcomepackageemail","remote":"sftp:\/\/test:test@example.org\/default\/"}}',
+    'add' => '4.6',
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'description' => 'WelcomePackageemail Exports',
+    'html_attributes' => array(),
+  ),
 );
