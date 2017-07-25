@@ -99,7 +99,7 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
    * We export each order_type based on what we find in settings
    * If default is specified in settings we export all order_types that are not listed separately using this type.
    */
-  private function exportToCSV() {
+  function exportToCSV() {
     // Write to a csv file in tmp dir
     $date = new DateTime();
 
@@ -170,11 +170,11 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
         $fileKey = 'default';
       }
       // Build the row
-      $csv = implode(',', array_values($fields));
+      $csv = implode(self::$CSV_SEPARATOR, array_values($fields));
 
       // Write header on first line
       if (!$this->files[$fileKey]['hasContent']) {
-        $header = implode(',', array_keys($fields));
+        $header = implode(self::$CSV_SEPARATOR, array_keys($fields));
         file_put_contents($this->files[$fileKey]['outfile'], $header.PHP_EOL, FILE_APPEND | LOCK_EX);
         $this->files[$fileKey]['hasContent'] = TRUE;
       }
@@ -190,7 +190,7 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
    *
    * @param string $method
    */
-  private function upload() {
+  function upload() {
     if ($this->_exportComplete) {
       // Upload each file in sequence.  If one fails record error and move on to the next one.
       foreach ($this->settings as $orderType => $setting) {

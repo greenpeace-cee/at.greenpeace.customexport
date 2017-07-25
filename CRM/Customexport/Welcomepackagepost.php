@@ -2,10 +2,6 @@
 
 class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
 
-  private $exportFile; // Details of the file used for export
-  private $lines; // Lines for export
-  private static $CSV_SEPARATOR = ';';
-
   function __construct($batchSize = NULL) {
     if (!$this->getExportSettings('welcomepackagepost_exports')) {
       throw new Exception('Could not load welcomepackagepostExports settings - did you define a default value?');
@@ -14,113 +10,8 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
     $this->getLocalFilePath();
   }
 
-  /**
-   * Export all contacts meeting criteria
-   */
   public function export() {
-    $this->configureOutputFile();
-
-    $this->doQuery();
-
-    $this->exportToCSV();
-    // Once all batches exported:
-    $this->upload();
-
-    $return['is_error'] = $this->exportFile['uploadError'];
-    $return['message'] = $this->exportFile['uploadErrorMessage'];
-    $return['error_code'] = $this->exportFile['uploadErrorCode'];
-    return $return;
-  }
-
-  /**
-   * Run the query
-   * @return bool
-   */
-  private function doQuery() {
-    $sql = $this->sql();
-
-    CRM_Core_Error::debug_log_message($sql);
-    $dao = CRM_Core_DAO::executeQuery($sql);
-    $dao->_get_keys();
-
-    $keys = $this->keys();
-
-    while ($dao->fetch()) {
-      $line = (array) $dao;
-      $newLine = array();
-      foreach ($keys as $key) {
-        $newLine[] = $line[$key];
-      }
-      $this->lines[] = $newLine;
-    }
-
-    return TRUE;
-  }
-
-  private function configureOutputFile() {
-    // Write to a csv file in tmp dir
-    $date = new DateTime();
-
-    // order_type => optionvalue_id(order_type),
-    // file => csv file name (eg. export),
-    // remote => remote server (eg. sftp://user:pass@server.com/dir/)
-    if (!isset($this->settings['default']))
-      return FALSE;
-
-    $this->exportFile = $this->settings['default'];
-    $this->exportFile['outfilename'] = $this->exportFile['file'] . '_' . $date->format('YmdHis'). '.csv';
-    $this->exportFile['outfile'] = $this->localFilePath . '/' . $this->exportFile['outfilename'];
-    $this->exportFile['hasContent'] = FALSE; // Set to TRUE once header is written
-  }
-
-  /**
-   * Export the lines array to csv file
-   */
-  private function exportToCSV() {
-    foreach($this->lines as $id => $line) {
-
-      // Build the row
-      $csv = implode(self::$CSV_SEPARATOR, $line);
-
-      // Write header on first line
-      if (!$this->exportFile['hasContent']) {
-        $header = implode(self::$CSV_SEPARATOR, $this->keys());
-        file_put_contents($this->exportFile['outfile'], $header.PHP_EOL, FILE_APPEND | LOCK_EX);
-        $this->exportFile['hasContent'] = TRUE;
-      }
-
-      file_put_contents($this->exportFile['outfile'], $csv.PHP_EOL, FILE_APPEND | LOCK_EX);
-    }
-  }
-
-  /**
-   * Upload the given file using method (default sftp)
-   *
-   * @param string $method
-   */
-  private function upload() {
-    if ($this->_exportComplete) {
-      // Check if any data was found
-      if (!$this->exportFile['hasContent']) {
-        return FALSE;
-      }
-
-      // We have data, so upload the file
-      $uploader = new CRM_Customexport_Upload($this->exportFile['outfile']);
-      $uploader->setServer($this->exportFile['remote'] . $this->exportFile['outfilename'], TRUE);
-      $errorCode = $uploader->upload();
-      $this->exportFile['uploadErrorCode'] = $errorCode;
-      if (!empty($errorCode)) {
-        $this->exportFile['uploadError'] = TRUE;
-        $this->exportFile['uploadErrorMessage'] = $uploader->getErrorMessage();
-      }
-      else {
-        // Delete the local copy of the csv file
-        unlink($this->exportFile['outfile']);
-        $this->exportFile['uploadError'] = FALSE;
-        $this->exportFile['uploadErrorMessage'] = NULL;
-      }
-    }
+    parent::export();
   }
 
   /**
@@ -130,6 +21,7 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
   private function keys() {
     return array("id", "titel", "anrede", "vorname", "nachname", "co", "strasse", "plz", "ort", "postfach", "land", "kundennummer");
   }
+
   /**
    * The actual query
    */
