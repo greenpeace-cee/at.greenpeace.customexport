@@ -3,7 +3,7 @@
 class CRM_Customexport_WelcomepackageEmail extends CRM_Customexport_Base {
 
   function __construct($batchSize = NULL) {
-    if (!$this->getExportSettings('welcomepackagepost_exports')) {
+    if (!$this->getExportSettings('welcomepackageemail_exports')) {
       throw new Exception('Could not load welcomepackagepostExports settings - did you define a default value?');
     };
 
