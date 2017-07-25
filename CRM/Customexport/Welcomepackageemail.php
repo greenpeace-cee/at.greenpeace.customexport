@@ -1,6 +1,6 @@
 <?php
 
-class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
+class CRM_Customexport_WelcomepackageEmail extends CRM_Customexport_Base {
 
   function __construct($batchSize = NULL) {
     if (!$this->getExportSettings('welcomepackagepost_exports')) {

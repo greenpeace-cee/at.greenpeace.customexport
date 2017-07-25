@@ -153,6 +153,6 @@ abstract class CRM_Customexport_Base {
     return TRUE;
   }
 
-  abstract protected function sql();
-  abstract protected function keys();
+  protected function sql() {}
+  protected function keys() {}
 }
