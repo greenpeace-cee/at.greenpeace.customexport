@@ -145,7 +145,7 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
         //'zeilgruppe_id' =>
         //'zielgruppe' =>
         //'paket' =>
-        'kundennummber' => $contact['id'],
+        'kundennummer' => $contact['id'],
         //'sepa_belegart' =>
         //'iban_empfaenger' =>
         //'bic_empfaenger' =>
