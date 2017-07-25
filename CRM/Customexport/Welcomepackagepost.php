@@ -3,6 +3,8 @@
 class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
 
   private $exportFile; // Details of the file used for export
+  private $lines; // Lines for export
+  private static $CSV_SEPARATOR = ';';
 
   function __construct($batchSize = NULL) {
     if (!$this->getExportSettings('welcomepackagepost_exports')) {
@@ -19,8 +21,8 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
     $this->configureOutputFile();
 
     $this->doQuery();
-    return;
 
+    $this->exportToCSV();
     // Once all batches exported:
     $this->upload();
 
@@ -31,23 +33,27 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
   }
 
   /**
-   * Get batch of contacts who are Individuals; do_not_email, user_opt_out is not set
-   * Retrieve in batches for performance reasons
-   * @param $limit
-   * @param $offset
-   *
+   * Run the query
    * @return bool
    */
   private function doQuery() {
     $sql = $this->sql();
+
     CRM_Core_Error::debug_log_message($sql);
     $dao = CRM_Core_DAO::executeQuery($sql);
+    $dao->_get_keys();
+
+    $keys = $this->keys();
 
     while ($dao->fetch()) {
-      _civicrm_api3_object_to_array($dao,$values);
-      CRM_Core_Error::debug_log_message('values:'.print_r($values,TRUE));
-      break;
+      $line = (array) $dao;
+      $newLine = array();
+      foreach ($keys as $key) {
+        $newLine[] = $line[$key];
+      }
+      $this->lines[] = $newLine;
     }
+
     return TRUE;
   }
 
@@ -68,12 +74,23 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
   }
 
   /**
-   * Export the activities array to csv file
-   * We export each order_type based on what we find in settings
-   * If default is specified in settings we export all order_types that are not listed separately using this type.
+   * Export the lines array to csv file
    */
   private function exportToCSV() {
+    foreach($this->lines as $id => $line) {
 
+      // Build the row
+      $csv = implode(self::$CSV_SEPARATOR, $line);
+
+      // Write header on first line
+      if (!$this->exportFile['hasContent']) {
+        $header = implode(self::$CSV_SEPARATOR, $this->keys());
+        file_put_contents($this->exportFile['outfile'], $header.PHP_EOL, FILE_APPEND | LOCK_EX);
+        $this->exportFile['hasContent'] = TRUE;
+      }
+
+      file_put_contents($this->exportFile['outfile'], $csv.PHP_EOL, FILE_APPEND | LOCK_EX);
+    }
   }
 
   /**
@@ -106,6 +123,13 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
     }
   }
 
+  /**
+   * The keys we need in the csv export.  These MUST exist in the sql select
+   * @return array
+   */
+  private function keys() {
+    return array("id", "titel", "anrede", "vorname", "nachname", "co", "strasse", "plz", "ort", "postfach", "land", "kundennummer");
+  }
   /**
    * The actual query
    */
