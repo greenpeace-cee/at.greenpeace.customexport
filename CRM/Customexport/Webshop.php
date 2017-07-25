@@ -255,6 +255,7 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
       if ($uploaded) {
         $params = $activity;
         $params['custom_' . $this->customFields['order_exported']['id']] = 1;
+        $params['status_id'] = 2; // Completed
         $activities = civicrm_api3('Activity', 'create', $params);
       }
     }
