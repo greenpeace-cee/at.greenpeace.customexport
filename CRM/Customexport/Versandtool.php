@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS temp_versandtool
       LEFT JOIN civicrm_phone phone			ON phone.contact_id=c.id  AND phone.is_primary=1
       LEFT JOIN civicrm_value_address_statistics address_stat ON address_stat.entity_id=address.id
       LEFT JOIN civicrm_country ctry 			ON address.country_id=ctry.id
-      LEFT JOIN civicrm_option_value v 		ON v.value=c.prefix_id AND v.option_group_id= (SELECT id FROM civicrm_option_group WHERE name ='individual_prefix') #6
+      LEFT JOIN civicrm_option_value v 		ON v.value=c.prefix_id AND v.option_group_id= (SELECT id FROM civicrm_option_group WHERE name ='individual_prefix') 
     WHERE c.do_not_email=0 AND c.is_opt_out=0 and c.contact_type='Individual' AND email.email IS NOT NULL AND c.is_deceased=0 AND c.is_deleted=0
     ;
     ";
