@@ -390,7 +390,7 @@ GROUP BY acon.contact_id";
    *
    * @param string $method
    */
-  private function upload() {
+  function upload() {
     if ($this->_exportComplete) {
       // Check if any data was found
       if (!$this->exportFile['hasContent']) {

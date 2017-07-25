@@ -1,6 +1,6 @@
 <?php
 
-class CRM_Customexport_Base {
+abstract class CRM_Customexport_Base {
 
   protected $localFilePath; // Path where files are stored locally
   protected $settings; // Settings
@@ -159,9 +159,12 @@ class CRM_Customexport_Base {
       foreach ($keys as $key) {
         $newLine[] = $line[$key];
       }
-      $this->lines[] = $newLine;
+      $this->exportLines[] = $newLine;
     }
 
     return TRUE;
   }
+
+  abstract protected function sql();
+  abstract protected function keys();
 }

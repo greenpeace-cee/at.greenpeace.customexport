@@ -18,14 +18,14 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
    * The keys we need in the csv export.  These MUST exist in the sql select
    * @return array
    */
-  private function keys() {
+  function keys() {
     return array("id", "titel", "anrede", "vorname", "nachname", "co", "strasse", "plz", "ort", "postfach", "land", "kundennummer");
   }
 
   /**
    * The actual query
    */
-  private function sql() {
+  function sql() {
     $sql = "
 # *******#
 #   OUT  #
