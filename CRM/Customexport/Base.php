@@ -131,7 +131,7 @@ abstract class CRM_Customexport_Base {
 
     if (is_array($sql)) {
       foreach ($sql as $query) {
-        CRM_Core_Error::debug_log_message(print_r($sql,TRUE));
+        // CRM_Core_Error::debug_log_message(print_r($sql,TRUE));
         $dao = CRM_Core_DAO::executeQuery($query);
       }
     }

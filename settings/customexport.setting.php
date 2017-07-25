@@ -29,20 +29,6 @@ return array(
     'description' => 'Versandtool Exports',
     'html_attributes' => array(),
   ),
-  //versandtool_batchsize
-  'versandtool_batchsize' => array(
-    'group_name' => 'Customexport Preferences',
-    'group' => 'Customexport',
-    'name' => 'versandtool_batchsize',
-    'type' => 'Integer',
-    'html_type' => 'Text',
-    'default' => '100000',
-    'add' => '4.6',
-    'is_domain' => 1,
-    'is_contact' => 0,
-    'description' => 'Number of contacts to process in an iteration (adjust to optimise memory usage/sql queries).  All matching contacts will be exported',
-    'html_attributes' => array(),
-  ),
   //welcomepackagepost_exports
   'welcomepackagepost_exports' => array(
     'group_name' => 'Customexport Preferences',
@@ -57,6 +43,20 @@ return array(
     'description' => 'WelcomePackagePost Exports',
     'html_attributes' => array(),
   ),
+  //welcomepackagepost_campaign_externalidentifier
+  'welcomepackagepost_campaign_externalidentifier' => array(
+    'group_name' => 'Customexport Preferences',
+    'group' => 'Customexport',
+    'name' => 'welcomepackagepost_campaign_externalidentifier',
+    'type' => 'String',
+    'html_type' => 'Text',
+    'default' => 'AKTION-7767',
+    'add' => '4.6',
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'description' => 'WelcomePackagePost Campaign External Identifier',
+    'html_attributes' => array(),
+  ),
   //welcomepackageemail_exports
   'welcomepackageemail_exports' => array(
     'group_name' => 'Customexport Preferences',
@@ -69,6 +69,20 @@ return array(
     'is_domain' => 1,
     'is_contact' => 0,
     'description' => 'WelcomePackageemail Exports',
+    'html_attributes' => array(),
+  ),
+  //welcomepackageemail_campaign_externalidentifier
+  'welcomepackageemail_campaign_externalidentifier' => array(
+    'group_name' => 'Customexport Preferences',
+    'group' => 'Customexport',
+    'name' => 'welcomepackageemail_campaign_externalidentifier',
+    'type' => 'String',
+    'html_type' => 'Text',
+    'default' => 'AKTION-7769',
+    'add' => '4.6',
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'description' => 'WelcomePackageemail Campaign External Identifier',
     'html_attributes' => array(),
   ),
 );

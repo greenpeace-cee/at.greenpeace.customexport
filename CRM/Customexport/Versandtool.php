@@ -2,7 +2,7 @@
 
 class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
 
-  function __construct($batchSize = NULL) {
+  function __construct() {
     if (!$this->getExportSettings('versandtool_exports')) {
       throw new Exception('Could not load versandtoolExports settings - did you define a default value?');
     };

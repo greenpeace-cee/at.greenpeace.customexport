@@ -2,10 +2,14 @@
 
 class CRM_Customexport_WelcomepackageEmail extends CRM_Customexport_Base {
 
-  function __construct($batchSize = NULL) {
+  private $campaignExternalIdentifier; // Holds the external identifier for the campaign (used in SQL queries) from setting welcomepackageemail_campaign_externalidentifier
+
+  function __construct() {
     if (!$this->getExportSettings('welcomepackageemail_exports')) {
       throw new Exception('Could not load welcomepackagepostExports settings - did you define a default value?');
     };
+
+    $this->campaignExternalIdentifier = CRM_Customexport_Utils::getSettings('welcomepackageemail_campaign_externalidentifier');
 
     $this->getLocalFilePath();
   }
@@ -87,7 +91,7 @@ CREATE TABLE IF NOT EXISTS temp_welcome_delete AS
 			FROM civicrm_activity AS activity
 			LEFT JOIN civicrm_activity_contact AS ac ON ac.activity_id=activity.id
 			LEFT JOIN civicrm_campaign AS campaign ON campaign.id=activity.campaign_id
-			WHERE campaign.external_identifier='AKTION-7769' AND activity_date_time >= NOW()-INTERVAL 6 MONTH
+			WHERE campaign.external_identifier='{$this->campaignExternalIdentifier}' AND activity_date_time >= NOW()-INTERVAL 6 MONTH
 
             #OUT: Hard/Softbounces - not in Civi, yet! when implemented, then this has to be updated
 
@@ -148,7 +152,7 @@ WHERE keep_contact=0;
 # ****************#*/
     $sql[]="
 SET @CiviCampaignID:= (SELECT id FROM civicrm_campaign
-    WHERE external_identifier='AKTION-7769');
+    WHERE external_identifier='{$this->campaignExternalIdentifier}');
     ";
 
     $sql[]="

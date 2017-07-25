@@ -2,10 +2,13 @@
 
 class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
 
-  function __construct($batchSize = NULL) {
+  private $campaignExternalIdentifier; // Holds the external identifier for the campaign (used in SQL queries) from setting welcomepackagepost_campaign_externalidentifier
+
+  function __construct() {
     if (!$this->getExportSettings('welcomepackagepost_exports')) {
       throw new Exception('Could not load welcomepackagepostExports settings - did you define a default value?');
     };
+    $this->campaignExternalIdentifier = CRM_Customexport_Utils::getSettings('welcomepackagepost_campaign_externalidentifier');
 
     $this->getLocalFilePath();
   }
@@ -85,7 +88,7 @@ CREATE TABLE IF NOT EXISTS temp_welcome_delete AS
 			FROM civicrm_activity AS activity
 			LEFT JOIN civicrm_activity_contact AS ac ON ac.activity_id=activity.id
 			LEFT JOIN civicrm_campaign AS campaign ON campaign.id=activity.campaign_id
-			WHERE campaign.external_identifier='AKTION-7767' AND activity_date_time >= NOW()-INTERVAL 6 MONTH
+			WHERE campaign.external_identifier='{$this->campaignExternalIdentifier}' AND activity_date_time >= NOW()-INTERVAL 6 MONTH
             
             
 		) AS delete_multiple_contacts
@@ -146,7 +149,7 @@ WHERE keep_contact=0;
 # ****************#*/
     $sql[] = "
 SET @CiviCampaignID:= (SELECT id FROM civicrm_campaign
-    WHERE external_identifier='AKTION-7767');
+    WHERE external_identifier='{$this->campaignExternalIdentifier}');
     ";
     
 /*#Output for CSV File
