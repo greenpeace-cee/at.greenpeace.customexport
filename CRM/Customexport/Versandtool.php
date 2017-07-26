@@ -148,8 +148,7 @@ SET versand.Campaign_Topic=p.Campaign_Topic
 /*#FINAL EXPORT*/
     $sql[]="
 SELECT *
-FROM temp_versandtool versand
-where Donation_Info is not null;
+FROM temp_versandtool versand;
     ";
 
     return $sql;
