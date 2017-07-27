@@ -33,7 +33,7 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
    * @return array
    */
   function keys() {
-    return array('Kontakthash', 'Email', 'Salutation', 'Firstname', 'Lastname', 'Birthday', 'Title', 'ZIP', 'City', 'Country', 'Address', 'Contact_ID',
+    return array('Contact_Hash', 'Email', 'Salutation', 'Firstname', 'Lastname', 'Birthday', 'Title', 'ZIP', 'City', 'Country', 'Address', 'Contact_ID',
 	    'Telephone', 'PersonID_IMB', 'Package_id', 'Segment_id', 'Community_NL', 'Donation_Info', 'Campaign_Topic', 'Petition');
   }
 
