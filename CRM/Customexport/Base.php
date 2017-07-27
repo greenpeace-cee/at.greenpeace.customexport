@@ -128,10 +128,12 @@ abstract class CRM_Customexport_Base {
       $return['is_error'] = $this->exportFile['uploadError'];
       $return['message'] = $this->exportFile['uploadErrorMessage'];
       $return['error_code'] = $this->exportFile['uploadErrorCode'];
+      $return['values']['count'] = count($this->exportLines);
     }
     else {
       $return['is_error'] = TRUE;
       $return['message'] = 'No data available for upload';
+      $return['values'] = NULL;
     }
     return $return;
   }

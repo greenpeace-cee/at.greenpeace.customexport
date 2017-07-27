@@ -38,7 +38,7 @@ function civicrm_api3_customexport_welcomepackagepost($params) {
   $exporter = new CRM_Customexport_Welcomepackagepost();
   $result = $exporter->export();
   if (empty($result['is_error'])) {
-    return civicrm_api3_create_success(1, $params, 'Customexport', 'Welcomepackagepost');
+    return civicrm_api3_create_success($result['values'], $params, 'Customexport', 'Welcomepackagepost');
   }
   else {
     if (!$result['message']) {
