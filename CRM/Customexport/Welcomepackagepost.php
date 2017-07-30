@@ -36,13 +36,14 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
         $activity_params = array(
           'status_id'        => 'Completed',
           'activity_type_id' => 'Action',
-          'subject'          => 'Welcome Call (Post)');
+          'subject'          => 'Welcome Package: Postal');
 
         if ($this->campaignExternalIdentifier) {
           $campaign = civicrm_api3('Campaign', 'getsingle', array(
             'external_identifier' => $this->campaignExternalIdentifier,
-            'return'              => 'title'));
-          $activity_params['subject'] = $campaign['title'];
+            'return'              => 'title,id'));
+          // $activity_params['subject']     = $campaign['title'];
+          $activity_params['campaign_id'] = $campaign['id'];
         }
 
         $this->createMassActivity($activity_params);
