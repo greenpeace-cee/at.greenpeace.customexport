@@ -96,7 +96,6 @@ abstract class CRM_Customexport_Base {
                       3                 AS record_type
                     FROM civicrm_contact
                     WHERE civicrm_contact.id IN ({$contact_id_list}))";
-        error_log($query);
         CRM_Core_DAO::executeQuery($query);
       }
     }
