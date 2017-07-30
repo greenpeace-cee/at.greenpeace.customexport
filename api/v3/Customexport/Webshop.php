@@ -24,9 +24,10 @@
  */
 function _civicrm_api3_customexport_webshop_spec(&$spec) {
   $spec['create_activity'] = array(
-    'name'         => 'Create Activity',
+    'name'         => 'create_activity',
+    'title'        => 'Create Activity',
+    'description'  => 'Creates an activity connected to every exported contact',
     'api.required' => 0,
-    'title'        => 'Creates an activity connected to every exported contact',
     );
 }
 
