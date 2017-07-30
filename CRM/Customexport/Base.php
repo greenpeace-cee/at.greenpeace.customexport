@@ -16,12 +16,20 @@
 
 abstract class CRM_Customexport_Base {
 
+  protected $params;
+  protected $contact_ids;
   protected $localFilePath; // Path where files are stored locally
   protected $settings; // Settings
   protected $_exportComplete = FALSE; // Set to TRUE when export has completed
   protected $exportFile; // Details of the file used for export
   protected $exportLines; // Lines for export
   protected static $CSV_SEPARATOR = ';'; // Separator for CSV file
+
+
+  function __construct($params = array()) {
+    $this->contact_ids = array();
+    $this->params = $params;
+  }
 
   /**
    * Get the settings
@@ -66,6 +74,31 @@ abstract class CRM_Customexport_Base {
       }
 
       file_put_contents($this->exportFile['outfile'], $csv.PHP_EOL, FILE_APPEND | LOCK_EX);
+    }
+  }
+
+  /**
+   * create an activity connected to every exported contact
+   * for this to work, the query used has to contain a contact_id field
+   */
+  protected function createMassActivity($activity_params) {
+    if (!empty($this->contact_ids)) {
+      $activity = civicrm_api3('Activity', 'create', $activity_params);
+      $contact_id_list = implode(',', $this->contact_ids);
+
+      // connect all contact_ids to the activity
+      if (!empty($contact_id_list) && !empty($activity['id'])) {
+        $query = "INSERT IGNORE INTO civicrm_activity_contact
+                   (SELECT
+                      NULL              AS id,
+                      {$activity['id']} AS activity_id,
+                      id                AS contact_id,
+                      3                 AS record_type
+                    FROM civicrm_contact
+                    WHERE civicrm_contact.id IN ({$contact_id_list}))";
+        error_log($query);
+        CRM_Core_DAO::executeQuery($query);
+      }
     }
   }
 
@@ -161,12 +194,18 @@ abstract class CRM_Customexport_Base {
     $keys = $this->keys();
 
     while ($dao->fetch()) {
+      // TODO: avoid full DAO conversion, just access via $dao->$key
       $line = (array) $dao;
       $newLine = array();
       foreach ($keys as $key) {
         $newLine[] = $line[$key];
       }
       $this->exportLines[] = $newLine;
+
+      // add contact IDs to the list
+      if (isset($dao->contact_id)) {
+        $this->contact_ids[] = (int) $dao->contact_id;
+      }
     }
 
     return TRUE;

@@ -35,7 +35,7 @@ function _civicrm_api3_customexport_welcomepackagepost_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_customexport_welcomepackagepost($params) {
-  $exporter = new CRM_Customexport_Welcomepackagepost();
+  $exporter = new CRM_Customexport_Welcomepackagepost($params);
   $result = $exporter->export();
   if (empty($result['is_error'])) {
     return civicrm_api3_create_success($result['values'], $params, 'Customexport', 'Welcomepackagepost');

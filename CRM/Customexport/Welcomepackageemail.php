@@ -18,7 +18,8 @@ class CRM_Customexport_WelcomepackageEmail extends CRM_Customexport_Base {
 
   private $campaignExternalIdentifier; // Holds the external identifier for the campaign (used in SQL queries) from setting welcomepackageemail_campaign_externalidentifier
 
-  function __construct() {
+  function __construct($params) {
+    parent::__construct($params);
     if (!$this->getExportSettings('welcomepackageemail_exports')) {
       throw new Exception('Could not load welcomepackagepostExports settings - did you define a default value?');
     };
@@ -29,7 +30,29 @@ class CRM_Customexport_WelcomepackageEmail extends CRM_Customexport_Base {
   }
 
   public function export() {
-    return parent::export();
+    $result = parent::export();
+
+    if (!empty($this->params['create_activity'])) {
+      try {
+        $activity_params = array(
+          'status_id'        => 'Completed',
+          'activity_type_id' => 'Action',
+          'subject'          => 'Welcome Call (Email)');
+
+        if ($this->campaignExternalIdentifier) {
+          $campaign = civicrm_api3('Campaign', 'getsingle', array(
+            'external_identifier' => $this->campaignExternalIdentifier,
+            'return'              => 'title'));
+          $activity_params['subject'] = $campaign['title'];
+        }
+
+        $this->createMassActivity($activity_params);
+      } catch (Exception $e) {
+        error_log("Problem creating activity: " . $e->getMessage());
+      }
+    }
+
+    return $result;
   }
 
   /**
@@ -55,7 +78,7 @@ class CRM_Customexport_WelcomepackageEmail extends CRM_Customexport_Base {
 CREATE TABLE IF NOT EXISTS temp_welcome AS
 	(
   SELECT DISTINCT
-        c.id            AS contact_id 
+        c.id            AS contact_id
       , c.hash          AS Kontakthash
       , email.email 		AS Email
       , 0 					AS keep_contact
@@ -170,7 +193,7 @@ SET @CiviCampaignID:= (SELECT id FROM civicrm_campaign
     ";
 
     $sql[]="
-SELECT Kontakthash,Email
+SELECT Kontakthash,Email,contact_id
 FROM temp_welcome;
     ";
 
