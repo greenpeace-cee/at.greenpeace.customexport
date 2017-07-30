@@ -23,6 +23,11 @@
  * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
  */
 function _civicrm_api3_customexport_webshop_spec(&$spec) {
+  $spec['create_activity'] = array(
+    'name'         => 'Create Activity',
+    'api.required' => 0,
+    'title'        => 'Creates an activity connected to every exported contact',
+    );
 }
 
 /**

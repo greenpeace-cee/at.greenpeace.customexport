@@ -59,6 +59,25 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
     $this->upload();
     $this->setOrderExported();
 
+    // create an activity
+    if (!empty($this->params['create_activity'])) {
+      try {
+        $campaign = civicrm_api3('Campaign', 'getsingle', array(
+            'external_identifier' => 'Web_Shop',
+            'return'              => 'title,id'));
+
+        $activity_params = array(
+          'status_id'        => 'Completed',
+          'activity_type_id' => 'Action',
+          'subject'          => 'Webshop Versand',
+          'campaign_id'      => $campaign['id']);
+
+        $this->createMassActivity($activity_params);
+      } catch (Exception $e) {
+        error_log("Problem creating activity: " . $e->getMessage());
+      }
+    }
+
     // Return all upload errors
     foreach ($this->files as $orderType => $file) {
       $return[$orderType]['is_error'] = isset($file['uploadError']) ? $file['uploadError'] : FALSE;
@@ -130,6 +149,7 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
       // "item", "anzahl_items", "date_of_order", "activity_description", "spendensumme"]
 
       $contact = $sourceContacts[$activity['source_contact_id']];
+      $this->contact_ids[] = $contact['id'];
 
       $fields = array(
         'id' => $id,
