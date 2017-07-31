@@ -61,7 +61,7 @@ class CRM_Customexport_WelcomepackageEmail extends CRM_Customexport_Base {
    * @return array
    */
   function keys() {
-    return array('Kontakthash', 'Email');
+    return array('Kontakthash', 'Email', 'Contact_ID');
   }
 
   /**

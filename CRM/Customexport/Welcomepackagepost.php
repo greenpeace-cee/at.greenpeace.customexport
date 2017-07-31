@@ -60,7 +60,7 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
    * @return array
    */
   function keys() {
-    return array("id", "titel", "anrede", "vorname", "nachname", "co", "strasse", "plz", "ort", "postfach", "land", "kundennummer");
+    return array("Contact_ID", "titel", "anrede", "vorname", "nachname", "co", "strasse", "plz", "ort", "postfach", "land", "kundennummer");
   }
 
   /**
