@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS temp_welcome AS
 	(
   SELECT DISTINCT
         c.id            AS contact_id
-      , c.hash          AS Kontakthash
+      , c.hash          AS Contact_Hash
       , email.email 		AS Email
       , 0 					AS keep_contact
 	FROM civicrm_contact c
