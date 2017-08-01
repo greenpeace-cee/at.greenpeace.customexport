@@ -45,7 +45,7 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
     // The following query uses GROUP BY c.id because phone.is_primary is not unique and can return multiple phone numbers
     // This causes duplicate contact Id's.
     $sql[]="
-CREATE TABLE IF NOT EXISTS temp_versandtool
+CREATE TABLE IF NOT EXISTS temp_versandtool 
 	(
 	Contact_Hash 			VARCHAR(32)
 	, Email					VARCHAR(254)
@@ -96,29 +96,30 @@ FROM civicrm_contact c
 	LEFT JOIN civicrm_country ctry 			ON address.country_id=ctry.id
 	LEFT JOIN civicrm_option_value v 		ON v.value=c.prefix_id AND v.option_group_id= (SELECT id FROM civicrm_option_group WHERE name ='individual_prefix') #6
 WHERE c.do_not_email=0 AND c.is_opt_out=0 and c.contact_type='Individual' AND email.email IS NOT NULL AND c.is_deceased=0 AND c.is_deleted=0 
+		and external_identifier not like 'USER-%' and c.id not in (SELECT contact_id FROM civicrm_uf_match)
 ;
     ";
 
 /*#Add Status for Group 'Community NL'*/
     $sql[]="
 UPDATE temp_versandtool versand
-  INNER JOIN civicrm_group_contact gc		ON gc.contact_id=versand.Contact_ID AND gc.group_id = (SELECT id FROM civicrm_group WHERE title ='Community NL')
+INNER JOIN civicrm_group_contact gc		ON gc.contact_id=versand.Contact_ID AND gc.group_id = (SELECT id FROM civicrm_group WHERE title ='Community NL')
 SET Community_NL=gc.status
-    ;
+;
     ";
 
 /*#Add Status for Group 'Donation Info'*/
     $sql[]="
 UPDATE temp_versandtool versand
-  INNER JOIN civicrm_group_contact gc		ON gc.contact_id=versand.Contact_ID AND gc.group_id = (SELECT id FROM civicrm_group WHERE title ='Donation Info')
+INNER JOIN civicrm_group_contact gc		ON gc.contact_id=versand.Contact_ID AND gc.group_id = (SELECT id FROM civicrm_group WHERE title ='Donation Info')
 SET Donation_Info=gc.status
-    ;
+;
     ";
 
 /*#Add Information for Petitions and Campaigns - Collect first all petitions and campaigns belonging to one contact*/
     $sql[]="DROP TABLE IF EXISTS temp_versandtool_petition;";
     $sql[]="
-CREATE TABLE IF NOT EXISTS temp_versandtool_petition
+CREATE TABLE IF NOT EXISTS temp_versandtool_petition 
 	(Contact_ID 			INT(10) 	PRIMARY KEY
 	, Campaign_Topic 		VARCHAR(10000)
 	, Petition      		VARCHAR(10000) 

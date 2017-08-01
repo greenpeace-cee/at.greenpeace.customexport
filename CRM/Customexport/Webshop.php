@@ -195,12 +195,20 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
 
       // Write header on first line
       if (!$this->files[$fileKey]['hasContent']) {
-        $header = implode(self::$CSV_SEPARATOR, array_keys($fields));
-        file_put_contents($this->files[$fileKey]['outfile'], $header.PHP_EOL, FILE_APPEND | LOCK_EX);
+        $this->files[$fileKey]['fp'] = fopen($this->files[$fileKey]['outfile'], 'w');
+        fputcsv($this->files[$fileKey]['fp'], array_keys($fields),self::$CSV_SEPARATOR);
         $this->files[$fileKey]['hasContent'] = TRUE;
       }
 
-      file_put_contents($this->files[$fileKey]['outfile'], $csv.PHP_EOL, FILE_APPEND | LOCK_EX);
+      fputcsv($this->files[$fileKey]['fp'], array_values($fields), self::$CSV_SEPARATOR);
+    }
+
+    // Close files
+    foreach ($this->settings as $orderType => $setting) {
+      $this->files[$orderType] = $setting;
+      if (!empty($this->files[$orderType]['fp'])) {
+        fclose($$this->files[$orderType]['fp']);
+      }
     }
     // Set to TRUE on successful export
     $this->_exportComplete = TRUE;

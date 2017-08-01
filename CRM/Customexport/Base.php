@@ -61,20 +61,18 @@ abstract class CRM_Customexport_Base {
    * Export the lines array to csv file
    */
   protected function exportToCSV() {
+    $fp = fopen($this->exportFile['outfile'], 'w');
     foreach($this->exportLines as $id => $line) {
-
-      // Build the row
-      $csv = implode(self::$CSV_SEPARATOR, $line);
 
       // Write header on first line
       if (!$this->exportFile['hasContent']) {
-        $header = implode(self::$CSV_SEPARATOR, $this->keys());
-        file_put_contents($this->exportFile['outfile'], $header.PHP_EOL, FILE_APPEND | LOCK_EX);
+        fputcsv($fp, $this->keys(), self::$CSV_SEPARATOR);
         $this->exportFile['hasContent'] = TRUE;
       }
 
-      file_put_contents($this->exportFile['outfile'], $csv.PHP_EOL, FILE_APPEND | LOCK_EX);
+      fputcsv($fp, $line, self::$CSV_SEPARATOR);
     }
+    fclose($fp);
   }
 
   /**
