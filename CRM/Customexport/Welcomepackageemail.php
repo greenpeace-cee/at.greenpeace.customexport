@@ -194,7 +194,7 @@ SET @CiviCampaignID:= (SELECT id FROM civicrm_campaign
     ";
 
     $sql[]="
-SELECT Kontakthash,Email,contact_id
+SELECT Contact_Hash,Email,contact_id
 FROM temp_welcome;
     ";
 
