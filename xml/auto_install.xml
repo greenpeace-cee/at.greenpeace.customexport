@@ -116,7 +116,7 @@
       <custom_group_name>webshop_information</custom_group_name>
     </CustomField>
     <CustomField>
-      <name>Order_exported_date</name>
+      <name>order_exported_date</name>
       <label>Order exported date</label>
       <data_type>Date</data_type>
       <html_type>Select Date</html_type>

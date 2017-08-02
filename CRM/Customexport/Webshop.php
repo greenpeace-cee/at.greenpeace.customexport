@@ -263,6 +263,9 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
   private function setOrderExported() {
     // We set the order_exported for the activity once we get confirmation that the export/upload completed successfully.
 
+    // Get date (now) for field order_exported_date (we can use the same date/time for each one)
+    $date = new DateTime();
+    $now = $date->format('Y-m-d H:i:s');
     // Get the upload status for each order type and put in an array for lookup later
     foreach ($this->settings as $orderType => $setting) {
       $orderUploaded[$orderType] = !$this->files[$orderType]['uploadError'];
@@ -281,8 +284,10 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
         $uploaded = $orderUploaded['default'];
       }
       if ($uploaded) {
+        // Mark the order as exported and set the date
         $params = $activity;
         $params['custom_' . $this->customFields['order_exported']['id']] = 1;
+        $params['custom_' . $this->customFields['order_exported_date']['id']] = $now;
         $params['status_id'] = 2; // Completed
         $activities = civicrm_api3('Activity', 'create', $params);
       }
