@@ -60,7 +60,7 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
    * @return array
    */
   function keys() {
-    return array("contact_id", "titel", "anrede", "vorname", "nachname", "co", "strasse", "plz", "ort", "postfach", "land", "kundennummer");
+    return array("contact_id", "titel", "anrede", "vorname", "nachname", "co", "strasse", "plz", "ort", "postfach", "land", "kundennummer", "emailadresse");
   }
 
   function sqlFinalSelect() {
@@ -74,7 +74,7 @@ SET @CiviCampaignID:= (SELECT id FROM civicrm_campaign
     WHERE external_identifier='{$this->campaignExternalIdentifier}');
 
     #Output for CSV File
-    #contact_id, titel, anrede, vorname, nachname, co, strasse, plz, ort, postfach, land, kundennummer 
+    #contact_id, titel, anrede, vorname, nachname, co, strasse, plz, ort, postfach, land, kundennummer, emailadresse 
     SELECT 	w.contact_id 			AS contact_id
 		,formal_title 			AS titel     
 		, v.label 				AS anrede      
