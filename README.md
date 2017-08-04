@@ -83,3 +83,4 @@ This contains the main SQL queries for generating the data.  When you need to up
 * Do not use ```"``` character anywhere in the SQL script - you may use ```'``` if required.
 * Only use ```#``` character for SQL comments
 * If you create tables, make sure the fields match the naming requirements in ```sqlFinalSelect()```/```keys()``` so you don't have to update those functions as well.
+* Don't specify the database name in the SQL script (eg. this is not allowed: ```SELECT * FROM pro_civicrm.civicrm_contact```; This is correct: ```SELECT * FROM civicrm_contact```)
