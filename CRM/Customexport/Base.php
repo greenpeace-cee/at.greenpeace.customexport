@@ -173,12 +173,21 @@ abstract class CRM_Customexport_Base {
    * @return bool
    */
   protected function doQuery() {
-    $sql = $this->sql();
+    // Merge all sql statements together
+    // We store them in different functions to make updates easier
+    $sql = array_merge(explode(';', $this->sql()), explode(';', $this->sqlFinalSelect()));
 
     if (is_array($sql)) {
       foreach ($sql as $query) {
-        // CRM_Core_Error::debug_log_message(print_r($sql,TRUE));
-        $dao = CRM_Core_DAO::executeQuery($query);
+        $query = trim($query);
+        if (!empty($query)) { // Explode may create some empty sql queries (just whitespace/newlines), don't try and run them
+          try {
+            $dao = CRM_Core_DAO::executeQuery($query);
+          }
+          catch (Exception $e) {
+            throw new Exception("Query failed '".$e->getMessage()."'. Query: ".$query);
+          }
+        }
       }
     }
     else {
@@ -208,6 +217,8 @@ abstract class CRM_Customexport_Base {
     return TRUE;
   }
 
-  protected function sql() {}
+
   protected function keys() {}
+  protected function sql() {}
+  protected function sqlFinalSelect() {}
 }
