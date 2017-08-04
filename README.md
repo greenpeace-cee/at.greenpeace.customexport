@@ -61,3 +61,25 @@ This exports on a daily basis contact info for all contacts who are not marked d
 
 ### Usage
 Run the api function customexport.welcomepackagepost or enable the daily cron job.
+
+# Updating SQL queries for welcomepackageemail,welcomepackagepost,versandtool
+The following functions should be updated as necessary:
+
+```function keys()```:
+
+An array of all keys which should appear in the CSV file.  Each key must EXACTLY match a field that is selected in the final SQL statement.
+
+```function sqlFinalSelect()```:
+
+This contains the final SQL select statement and should not change unless you are also changing the format of the CSV file.
+It may contain variables such as @SET which take values from CiviCRM settings(eg. a campaign Id).
+
+```function sql()```:
+
+This contains the main SQL queries for generating the data.  When you need to update the SQL query just paste between the ```return "``` and ```";``` lines.
+
+**Important notes:**
+
+* Do not use ```"``` character anywhere in the SQL script - you may use ```'``` if required.
+* Only use ```#``` character for SQL comments
+* If you create tables, make sure the fields match the naming requirements in ```sqlFinalSelect()```/```keys()``` so you don't have to update those functions as well.
