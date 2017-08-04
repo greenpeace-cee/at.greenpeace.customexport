@@ -37,14 +37,23 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
 	    'Telephone', 'PersonID_IMB', 'Package_id', 'Segment_id', 'Community_NL', 'Donation_Info', 'Campaign_Topic', 'Petition');
   }
 
+  function sqlFinalSelect() {
+    // Start of sql statements
+    return "
+#FINAL EXPORT
+SELECT *
+FROM temp_versandtool versand;
+
+    "; // DO NOT REMOVE (end of SQL statements)
+  }
+
   /**
    * The actual array of queries
    */
   function sql() {
-    $sql[]="DROP TABLE IF EXISTS temp_versandtool;";
-    // The following query uses GROUP BY c.id because phone.is_primary is not unique and can return multiple phone numbers
-    // This causes duplicate contact Id's.
-    $sql[]="
+    // Start of sql statements
+    return "
+DROP TABLE IF EXISTS temp_versandtool;
 CREATE TABLE IF NOT EXISTS temp_versandtool 
 	(
 	Contact_Hash 			VARCHAR(32)
@@ -98,27 +107,24 @@ FROM civicrm_contact c
 WHERE c.do_not_email=0 AND c.is_opt_out=0 and c.contact_type='Individual' AND email.email IS NOT NULL AND c.is_deceased=0 AND c.is_deleted=0 
 		and external_identifier not like 'USER-%' and c.id not in (SELECT contact_id FROM civicrm_uf_match)
 ;
-    ";
 
-/*#Add Status for Group 'Community NL'*/
-    $sql[]="
+#Add Status for Group 'Community NL'
+
 UPDATE temp_versandtool versand
 INNER JOIN civicrm_group_contact gc		ON gc.contact_id=versand.Contact_ID AND gc.group_id = (SELECT id FROM civicrm_group WHERE title ='Community NL')
 SET Community_NL=gc.status
 ;
-    ";
 
-/*#Add Status for Group 'Donation Info'*/
-    $sql[]="
+#Add Status for Group 'Donation Info'
+
 UPDATE temp_versandtool versand
 INNER JOIN civicrm_group_contact gc		ON gc.contact_id=versand.Contact_ID AND gc.group_id = (SELECT id FROM civicrm_group WHERE title ='Donation Info')
 SET Donation_Info=gc.status
 ;
-    ";
 
-/*#Add Information for Petitions and Campaigns - Collect first all petitions and campaigns belonging to one contact*/
-    $sql[]="DROP TABLE IF EXISTS temp_versandtool_petition;";
-    $sql[]="
+#Add Information for Petitions and Campaigns - Collect first all petitions and campaigns belonging to one contact
+DROP TABLE IF EXISTS temp_versandtool_petition;
+
 CREATE TABLE IF NOT EXISTS temp_versandtool_petition 
 	(Contact_ID 			INT(10) 	PRIMARY KEY
 	, Campaign_Topic 		VARCHAR(10000)
@@ -135,23 +141,15 @@ FROM temp_versandtool versand
 	INNER JOIN civicrm_campaign c 			ON c.id=s.campaign_id
 GROUP BY versand.Contact_ID
 ;
-    ";
 
-/*#Add Information for Petitions and Campaigns*/
-    $sql[]="
+#Add Information for Petitions and Campaigns
+
 UPDATE temp_versandtool versand
 INNER JOIN temp_versandtool_petition p on versand.Contact_ID=p.Contact_ID
 SET versand.Campaign_Topic=p.Campaign_Topic
 	, versand.Petition=p.Petition
 ;
-  ";
 
-/*#FINAL EXPORT*/
-    $sql[]="
-SELECT *
-FROM temp_versandtool versand;
-    ";
-
-    return $sql;
+    "; // DO NOT REMOVE (end of SQL statements)
   }
 }

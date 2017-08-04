@@ -63,23 +63,65 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
     return array("contact_id", "titel", "anrede", "vorname", "nachname", "co", "strasse", "plz", "ort", "postfach", "land", "kundennummer");
   }
 
+  function sqlFinalSelect() {
+    return "
+# ****************#
+#   FINAL SELECT  #
+# ****************#
+
+#Campaign Id for Kundennummer
+SET @CiviCampaignID:= (SELECT id FROM civicrm_campaign
+    WHERE external_identifier='{$this->campaignExternalIdentifier}');
+
+    #Output for CSV File
+    #contact_id, titel, anrede, vorname, nachname, co, strasse, plz, ort, postfach, land, kundennummer 
+    SELECT 	w.contact_id 			AS contact_id
+		,formal_title 			AS titel     
+		, v.label 				AS anrede      
+        , c.first_name 			AS vorname
+        , (case contact_type
+				when 'Individual' then c.last_name
+				when 'Organization' then c.organization_name
+				when 'Household' then c.household_name
+			end)  				AS nachname
+		, NULL 					AS co
+        , address.street_address AS strasse
+        , address.postal_code 	AS plz
+		, address.city 			AS ort
+        , NULL 					AS postfach
+        , ctry.iso_code 		AS land
+        , CONCAT(LPAD(@CiviCampaignID,5,'0'),'C',LPAD(w.contact_id, 9, '0')) 
+								AS kundennummer
+		,email.email			AS emailadresse
+FROM temp_welcome w
+	LEFT JOIN civicrm_contact c 			ON c.id=w.contact_id
+	LEFT JOIN civicrm_address address 		ON address.contact_id=c.id AND address.is_primary=1
+	LEFT JOIN civicrm_value_address_statistics address_stat ON address_stat.entity_id=address.id 
+	LEFT JOIN civicrm_country ctry 			ON address.country_id=ctry.id
+    LEFT JOIN civicrm_option_value v 		ON v.value=c.prefix_id AND v.option_group_id=(SELECT id FROM civicrm_option_group WHERE name ='individual_prefix')
+	LEFT JOIN civicrm_email email 			ON email.contact_id=c.id  AND email.is_primary=1
+	
+    "; // DO NOT REMOVE (end of SQL statements)
+  }
+
   /**
    * The actual array of queries
    */
   function sql() {
-/*# *******#
+    // Start of sql statements
+    return "
+# *******#
 #   OUT  #
 # *******#
 
 #Create basis table of contacts with first reduction:
-#OUT: deceased, deleted, do not mail, not AT, empty address, Retourenzähler >=2 */
-    $sql[] = "DROP TABLE IF EXISTS temp_welcome;";
-    $sql[] = "
-CREATE TABLE IF NOT EXISTS temp_welcome AS 
+#OUT: deceased, deleted, do not mail, not AT, empty address, Retourenzähler >=2
+DROP TABLE IF EXISTS temp_welcome;
+CREATE TEMPORARY TABLE IF NOT EXISTS temp_welcome AS 
 	(
 	SELECT DISTINCT c.id AS contact_id
         , 0 AS keep_contact
-	FROM civicrm_contact c
+  FROM civicrm_contact c
 		LEFT JOIN civicrm_address address 		ON address.contact_id=c.id AND is_primary=1 #NUR PRIMARY
 		LEFT JOIN civicrm_value_address_statistics address_stat ON address_stat.entity_id=address.id 
 		LEFT JOIN civicrm_country ctry 			ON address.country_id=ctry.id
@@ -101,13 +143,12 @@ CREATE TABLE IF NOT EXISTS temp_welcome AS
         
         
     );
-    ";
-    $sql[] = "ALTER TABLE temp_welcome ADD PRIMARY KEY (contact_id);";
 
-/*#Table with all contacts, which should not receive any welcome mail*/
-    $sql[] = "DROP TABLE IF EXISTS temp_welcome_delete;";
-    $sql[] = "
-CREATE TABLE IF NOT EXISTS temp_welcome_delete AS 
+ALTER TABLE temp_welcome ADD PRIMARY KEY (contact_id);
+
+#Table with all contacts, which should not receive any welcome mail
+DROP TABLE IF EXISTS temp_welcome_delete;
+CREATE TEMPORARY TABLE IF NOT EXISTS temp_welcome_delete AS 
 	(
 	SELECT DISTINCT contact_id
     FROM (	
@@ -141,32 +182,28 @@ CREATE TABLE IF NOT EXISTS temp_welcome_delete AS
 			FROM civicrm_activity AS activity
 			LEFT JOIN civicrm_activity_contact AS ac ON ac.activity_id=activity.id
 			LEFT JOIN civicrm_campaign AS campaign ON campaign.id=activity.campaign_id
-			WHERE campaign.external_identifier='{$this->campaignExternalIdentifier}' AND activity_date_time >= NOW()-INTERVAL 6 MONTH
+			WHERE campaign.external_identifier='AKTION-7767' AND activity_date_time >= NOW()-INTERVAL 6 MONTH
             
             
 		) AS delete_multiple_contacts
     );
-    ";
+    
+ALTER TABLE temp_welcome_delete ADD PRIMARY KEY (contact_id);
 
-    $sql[] = "ALTER TABLE temp_welcome_delete ADD PRIMARY KEY (contact_id);";
-
-/*#Delete all contacts from the welcome-list which were collected in the delete-table*/
-    $sql[] = "
+#Delete all contacts from the welcome-list which were collected in the delete-table    
 DELETE
 FROM temp_welcome 
 WHERE keep_contact=0 AND contact_id IN (SELECT contact_id FROM temp_welcome_delete)
 ;
-    ";
 
-/*# *******#
+# *******#
 #   IN   #
 # *******#
 
 #Table with all contacts, that have to be kept and should receive a welcome mail
-#IN: Membership Current/ Paused, Sepa RCUR / FRST, join date in last 6 months*/
-    $sql[] = "DROP TABLE IF EXISTS temp_welcome_keep;";
-    $sql[] = "
-CREATE TABLE IF NOT EXISTS temp_welcome_keep AS 
+#IN: Membership Current/ Paused, Sepa RCUR / FRST, join date in last 6 months
+DROP TABLE IF EXISTS temp_welcome_keep;
+CREATE TEMPORARY TABLE IF NOT EXISTS temp_welcome_keep AS 
 	(
     SELECT DISTINCT contact_id
 	FROM civicrm_membership AS m
@@ -183,63 +220,23 @@ CREATE TABLE IF NOT EXISTS temp_welcome_keep AS
 			#join_date innerhalbt der letzten 6 Monate und vorgestern
         AND join_date >= (NOW() - INTERVAL 6 MONTH) AND join_date < (NOW() - INTERVAL 2 DAY)
     );
-    ";
+    
+ALTER TABLE temp_welcome_keep ADD PRIMARY KEY (contact_id);
 
-    $sql[] = "ALTER TABLE temp_welcome_keep ADD PRIMARY KEY (contact_id);";
-
-/*#Mark the contacts, which should definetly be on the welcome list*/
-    $sql[] = "
-UPDATE temp_welcome
+#Mark the contacts, which should definetly be on the welcome list
+UPDATE temp_welcome 
 SET  keep_contact=1
 WHERE contact_id IN (SELECT contact_id FROM temp_welcome_keep);
-    ";
 
-/*# *******#
+# *******#
 #   OUT  #
 # *******#
 
-#Final delete of all contacts, which are not marked to be kept*/
-    $sql[] = "
+#Final delete of all contacts, which are not marked to be kept
 DELETE
-FROM temp_welcome
+FROM temp_welcome 
 WHERE keep_contact=0;
-";
-
-/*# ****************#
-#   FINAL SELECT  #
-# ****************#*/
-    $sql[] = "
-SET @CiviCampaignID:= (SELECT id FROM civicrm_campaign
-    WHERE external_identifier='{$this->campaignExternalIdentifier}');
-    ";
-
-/*#Output for CSV File
-#\"id\", \"titel\", \"anrede\", \"vorname\", \"nachname\", \"co\", \"strasse\", \"plz\", \"ort\", \"postfach\", \"land\", \"kundennummer\"*/
-    $sql[] = "
-SELECT 	w.contact_id 			AS contact_id
-		,formal_title 			AS titel     
-		, v.label 				AS anrede      
-        , c.first_name 			AS vorname
-        , (case contact_type
-				when 'Individual' then c.last_name
-				when 'Organization' then c.organization_name
-				when 'Household' then c.household_name
-			end)  				AS nachname
-		, NULL 					AS co
-        , address.street_address AS strasse
-        , address.postal_code 	AS plz
-		, address.city 			AS ort
-        , NULL 					AS postfach
-        , ctry.iso_code 		AS land
-        , CONCAT(LPAD(@CiviCampaignID,5,'0'),'C',LPAD(w.contact_id, 9, '0')) 
-								AS kundennummer
-FROM temp_welcome w
-	LEFT JOIN civicrm_contact c 			ON c.id=w.contact_id
-	LEFT JOIN civicrm_address address 		ON address.contact_id=c.id AND is_primary=1
-	LEFT JOIN civicrm_value_address_statistics address_stat ON address_stat.entity_id=address.id 
-	LEFT JOIN civicrm_country ctry 			ON address.country_id=ctry.id
-    LEFT JOIN civicrm_option_value v 		ON v.value=c.prefix_id AND v.option_group_id=(SELECT id FROM civicrm_option_group WHERE name ='individual_prefix');
-    ";
-    return $sql;
+    
+    "; // DO NOT REMOVE (end of SQL statements)
   }
 }
