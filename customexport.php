@@ -136,3 +136,22 @@ function customexport_civicrm_angularModules(&$angularModules) {
 function customexport_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
   _customexport_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
+
+/**
+ * Implements hook_civicrm_navigationMenu().
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
+ *
+ */
+function customexport_civicrm_navigationMenu(&$menu) {
+  $item[] =  array (
+    'label' => ts('Custom Export Settings', array('domain' => 'at.greenpeace.customexport')),
+    'name'       => 'Custom Export Settings',
+    'url'        => 'civicrm/customexport/settings',
+    'permission' => 'administer CiviCRM',
+    'operator'   => NULL,
+    'separator'  => NULL,
+  );
+  _customexport_civix_insert_navigation_menu($menu, 'Administer', $item[0]);
+  _customexport_civix_navigationMenu($menu);
+}
