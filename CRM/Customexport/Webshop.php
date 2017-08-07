@@ -80,9 +80,14 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
 
     // Return all upload errors
     foreach ($this->files as $orderType => $file) {
-      $return[$orderType]['is_error'] = isset($file['uploadError']) ? $file['uploadError'] : FALSE;
-      $return[$orderType]['message'] = $file['uploadErrorMessage'];
-      $return[$orderType]['error_code'] = $file['uploadErrorCode'];
+      if ($file['hasContent']) {
+        $return[$orderType]['order_type'] = $orderType;
+        $return[$orderType]['is_error'] = isset($file['uploadError']) ? $file['uploadError'] : FALSE;
+        $return[$orderType]['message'] = $file['uploadErrorMessage'];
+        $return[$orderType]['error_code'] = $file['uploadErrorCode'];
+        $return[$orderType]['count'] = $file['count'];
+        $return[$orderType]['filename'] = $file['outfilename'];
+      }
     }
     return $return;
   }
@@ -132,6 +137,7 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
       $this->files[$orderType]['outfilename'] = $setting['file'] . '_' . $date->format('YmdHis'). '.csv';
       $this->files[$orderType]['outfile'] = $this->localFilePath . '/' . $this->files[$orderType]['outfilename'];
       $this->files[$orderType]['hasContent'] = FALSE; // Set to TRUE once header is written
+      $this->files[$orderType]['count'] = 0;
     }
 
     // Load and cache all contact IDs before we export, so we don't do multiple lookups for the same contact.
@@ -201,13 +207,14 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
       }
 
       fputcsv($this->files[$fileKey]['fp'], array_values($fields), self::$CSV_SEPARATOR);
+      $this->files[$fileKey]['count']++;
     }
 
     // Close files
     foreach ($this->settings as $orderType => $setting) {
-      $this->files[$orderType] = $setting;
+      //$this->files[$orderType] = $setting;
       if (!empty($this->files[$orderType]['fp'])) {
-        fclose($$this->files[$orderType]['fp']);
+        fclose($this->files[$orderType]['fp']);
       }
     }
     // Set to TRUE on successful export
