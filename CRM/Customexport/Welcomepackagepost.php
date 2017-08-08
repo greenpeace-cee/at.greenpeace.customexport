@@ -61,7 +61,7 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
    * @return array
    */
   function keys() {
-    return array("contact_id", "titel", "anrede", "vorname", "nachname", "co", "strasse", "plz", "ort", "postfach", "land", "kundennummer", "emailadresse");
+    return array("contact_id", "titel", "anrede", "vorname", "nachname", "co", "strasse", "plz", "ort", "postfach", "land", "kundennummer");
   }
 
   function sqlFinalSelect() {
@@ -74,11 +74,11 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
 SET @CiviCampaignID:= (SELECT id FROM civicrm_campaign
     WHERE external_identifier='{$this->campaignExternalIdentifier}');
 
-    #Output for CSV File
-    #contact_id, titel, anrede, vorname, nachname, co, strasse, plz, ort, postfach, land, kundennummer, emailadresse 
-    SELECT 	w.contact_id 			AS contact_id
+#Output for CSV File
+#id, titel, anrede, vorname, nachname, co, strasse, plz, ort, postfach, land, kundennummer 
+SELECT 	w.contact_id 			AS id
 		,formal_title 			AS titel     
-		, v.label 				AS anrede      
+		, v.label 				AS anrede     
         , c.first_name 			AS vorname
         , (case contact_type
 				when 'Individual' then c.last_name
@@ -93,15 +93,15 @@ SET @CiviCampaignID:= (SELECT id FROM civicrm_campaign
         , ctry.iso_code 		AS land
         , CONCAT(LPAD(@CiviCampaignID,5,'0'),'C',LPAD(w.contact_id, 9, '0')) 
 								AS kundennummer
-		,email.email			AS emailadresse
+		, membership_type		AS vertragstyp
+
 FROM temp_welcome w
 	LEFT JOIN civicrm_contact c 			ON c.id=w.contact_id
 	LEFT JOIN civicrm_address address 		ON address.contact_id=c.id AND address.is_primary=1
 	LEFT JOIN civicrm_value_address_statistics address_stat ON address_stat.entity_id=address.id 
 	LEFT JOIN civicrm_country ctry 			ON address.country_id=ctry.id
     LEFT JOIN civicrm_option_value v 		ON v.value=c.prefix_id AND v.option_group_id=(SELECT id FROM civicrm_option_group WHERE name ='individual_prefix')
-	LEFT JOIN civicrm_email email 			ON email.contact_id=c.id  AND email.is_primary=1
-	
+    LEFT JOIN temp_membershiptypes mt		ON mt.contact_id=w.contact_id
     "; // DO NOT REMOVE (end of SQL statements)
   }
 
@@ -122,7 +122,7 @@ CREATE TEMPORARY TABLE IF NOT EXISTS temp_welcome AS
 	(
 	SELECT DISTINCT c.id AS contact_id
         , 0 AS keep_contact
-  FROM civicrm_contact c
+	FROM civicrm_contact c
 		LEFT JOIN civicrm_address address 		ON address.contact_id=c.id AND is_primary=1 #NUR PRIMARY
 		LEFT JOIN civicrm_value_address_statistics address_stat ON address_stat.entity_id=address.id 
 		LEFT JOIN civicrm_country ctry 			ON address.country_id=ctry.id
@@ -237,7 +237,20 @@ WHERE contact_id IN (SELECT contact_id FROM temp_welcome_keep);
 DELETE
 FROM temp_welcome 
 WHERE keep_contact=0;
-    
+
+
+#Add Information for membership types - Collect all membership types belonging to one contact
+DROP TABLE IF EXISTS temp_membershiptypes;
+CREATE TEMPORARY TABLE IF NOT EXISTS temp_membershiptypes 
+	(contact_id 			INT(10) 	PRIMARY KEY
+	, membership_type 		VARCHAR(10000)
+    )
+SELECT contact_id 
+	, GROUP_CONCAT(DISTINCT mt.name ORDER BY mt.name SEPARATOR ', ') AS membership_type
+FROM civicrm_membership as m
+left join civicrm_membership_type as mt on mt.id=m.membership_type_id
+group by contact_id
+;
     "; // DO NOT REMOVE (end of SQL statements)
   }
 }
