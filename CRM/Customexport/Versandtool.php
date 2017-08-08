@@ -30,6 +30,8 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
     if (!isset($params['export_activity_subject'])) {
       $params['export_activity_subject'] = CRM_Customexport_Utils::getSettings('versandtool_export_activity_subject');
     }
+
+    parent::__construct($params);
   }
 
   function export() {

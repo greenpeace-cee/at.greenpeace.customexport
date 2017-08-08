@@ -26,8 +26,6 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
   }
 
   function __construct($params = array()) {
-    parent::__construct($params);
-
     if (!$this->getExportSettings('webshop_exports')) {
       throw new Exception('Could not load webshopExports settings - did you define a default value?');
     };
@@ -41,6 +39,8 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
     if (!isset($params['export_activity_subject'])) {
       $params['export_activity_subject'] = CRM_Customexport_Utils::getSettings('webshop_export_activity_subject');
     }
+
+    parent::__construct($params);
   }
 
   /**

@@ -19,7 +19,6 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
   private $campaignExternalIdentifier; // Holds the external identifier for the campaign (used in SQL queries) from setting welcomepackagepost_campaign_externalidentifier
 
   function __construct($params) {
-    parent::__construct($params);
      if (!$this->getExportSettings('welcomepackagepost_exports')) {
       throw new Exception('Could not load welcomepackagepostExports settings - did you define a default value?');
     };
@@ -34,6 +33,8 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
     if (!isset($params['export_activity_subject'])) {
       $params['export_activity_subject'] = CRM_Customexport_Utils::getSettings('welcomepackagepost_export_activity_subject');
     }
+
+    parent::__construct($params);
   }
 
   function export() {
