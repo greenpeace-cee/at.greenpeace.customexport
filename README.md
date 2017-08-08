@@ -68,6 +68,7 @@ The following functions should be updated as necessary:
 ```function keys()```:
 
 An array of all keys which should appear in the CSV file.  Each key must EXACTLY match a field that is selected in the final SQL statement.
+* `contact_id` **MUST EXIST** for export activities to be created.
 
 ```function sqlFinalSelect()```:
 
