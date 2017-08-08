@@ -65,8 +65,6 @@ class CRM_Customexport_Form_Settings extends CRM_Core_Form {
               foreach ($orderTypes['values'] as $orderType) {
                 $this->buildUploadSettings($setting['name'] . '_' . $orderType['value'], $setting['description'] . ': ' . $orderType['label']);
               }
-
-              $this->addElement('text', self::getSettingName($name), ts($setting['description']), $setting['html_attributes'], array());
             }
             else {
               $this->buildUploadSettings($setting['name'] . '_default', $setting['description']);

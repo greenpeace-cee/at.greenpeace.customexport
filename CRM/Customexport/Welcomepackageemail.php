@@ -27,33 +27,34 @@ class CRM_Customexport_WelcomepackageEmail extends CRM_Customexport_Base {
     $this->campaignExternalIdentifier = CRM_Customexport_Utils::getSettings('welcomepackageemail_campaign_externalidentifier');
 
     $this->getLocalFilePath();
+
+    // params override setting, if param not specified read the setting
+    if (!isset($params['create_activity'])) {
+      $params['create_activity'] = CRM_Customexport_Utils::getSettings('welcomepackageemail_create_export_activity');
+    }
+    if (!isset($params['export_activity_subject'])) {
+      $params['export_activity_subject'] = CRM_Customexport_Utils::getSettings('welcomepackageemail_export_activity_subject');
+    }
   }
 
-  public function export() {
-    $result = parent::export();
+  public function createMassActivity($activity_params = array()) {
+    $activity_params = array(
+      'status_id'        => 'Completed',
+      'activity_type_id' => 'Action',
+      'subject'          => $this->params['export_activity_subject']);
 
-    if (!empty($this->params['create_activity'])) {
-      try {
-        $activity_params = array(
-          'status_id'        => 'Completed',
-          'activity_type_id' => 'Action',
-          'subject'          => 'Welcome Package: Email');
-
-        if ($this->campaignExternalIdentifier) {
-          $campaign = civicrm_api3('Campaign', 'getsingle', array(
-            'external_identifier' => $this->campaignExternalIdentifier,
-            'return'              => 'title,id'));
-          // $activity_params['subject']     = $campaign['title'];
-          $activity_params['campaign_id'] = $campaign['id'];
-        }
-
-        $this->createMassActivity($activity_params);
-      } catch (Exception $e) {
-        error_log("Problem creating activity: " . $e->getMessage());
+    try {
+      if ($this->campaignExternalIdentifier) {
+        $campaign = civicrm_api3('Campaign', 'getsingle', array(
+          'external_identifier' => $this->campaignExternalIdentifier,
+          'return'              => 'title,id'));
+        $activity_params['campaign_id'] = $campaign['id'];
       }
-    }
 
-    return $result;
+      parent::createMassActivity($activity_params);
+    } catch (Exception $e) {
+      error_log("Problem creating activity: " . $e->getMessage());
+    }
   }
 
   /**

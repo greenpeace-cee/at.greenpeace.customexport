@@ -25,12 +25,22 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
     }
   }
 
-  function __construct() {
+  function __construct($params = array()) {
+    parent::__construct($params);
+
     if (!$this->getExportSettings('webshop_exports')) {
       throw new Exception('Could not load webshopExports settings - did you define a default value?');
     };
     $this->getCustomFields();
     $this->getLocalFilePath();
+
+    // params override setting, if param not specified read the setting
+    if (!isset($params['create_activity'])) {
+      $params['create_activity'] = CRM_Customexport_Utils::getSettings('webshop_create_export_activity');
+    }
+    if (!isset($params['export_activity_subject'])) {
+      $params['export_activity_subject'] = CRM_Customexport_Utils::getSettings('webshop_export_activity_subject');
+    }
   }
 
   /**
@@ -58,25 +68,6 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
     $this->exportToCSV();
     $this->upload();
     $this->setOrderExported();
-
-    // create an activity
-    if (!empty($this->params['create_activity'])) {
-      try {
-        $campaign = civicrm_api3('Campaign', 'getsingle', array(
-            'external_identifier' => 'Web_Shop',
-            'return'              => 'title,id'));
-
-        $activity_params = array(
-          'status_id'        => 'Completed',
-          'activity_type_id' => 'Action',
-          'subject'          => 'Webshop Versand',
-          'campaign_id'      => $campaign['id']);
-
-        $this->createMassActivity($activity_params);
-      } catch (Exception $e) {
-        error_log("Problem creating activity: " . $e->getMessage());
-      }
-    }
 
     // Return all upload errors
     foreach ($this->files as $orderType => $file) {
@@ -187,6 +178,7 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
         'membership_id' => $activity['custom_' . $this->customFields['linked_membership']['id']],
         'multi_purpose' => $activity['custom_' . $this->customFields['multi_purpose']['id']],
         'order_type' => $activity['custom_' . $this->customFields['order_type']['id']], // Required for lookups prior to export
+        'email' => $contact['email'],
       );
 
       // Get the correct output file
@@ -297,7 +289,30 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
         $params['custom_' . $this->customFields['order_exported_date']['id']] = $now;
         $params['status_id'] = 2; // Completed
         $activities = civicrm_api3('Activity', 'create', $params);
+
+        // create an activity "Action"
+        if (!empty($this->params['create_activity'])) {
+          $this->createMassActivity();
+        }
       }
+    }
+  }
+
+  public function createMassActivity($activity_params = array()) {
+    try {
+      $campaign = civicrm_api3('Campaign', 'getsingle', array(
+        'external_identifier' => 'Web_Shop',
+        'return'              => 'title,id'));
+
+      $activity_params = array(
+        'status_id'        => 'Completed',
+        'activity_type_id' => 'Action',
+        'subject'          => $this->params['export_activity_subject'],
+        'campaign_id'      => $campaign['id']);
+
+      $this->createMassActivity($activity_params);
+    } catch (Exception $e) {
+      error_log("Problem creating activity: " . $e->getMessage());
     }
   }
 }

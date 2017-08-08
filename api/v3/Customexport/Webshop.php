@@ -41,7 +41,7 @@ function _civicrm_api3_customexport_webshop_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_customexport_webshop($params) {
-  $exporter = new CRM_Customexport_Webshop();
+  $exporter = new CRM_Customexport_Webshop($params);
   $result = $exporter->export();
   return civicrm_api3_create_success($result, $params, 'Customexport', 'Webshop');
 }

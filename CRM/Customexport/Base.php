@@ -78,8 +78,9 @@ abstract class CRM_Customexport_Base {
   /**
    * create an activity connected to every exported contact
    * for this to work, the query used has to contain a contact_id field
+   * Override to set $activity_params then call parent class
    */
-  protected function createMassActivity($activity_params) {
+  protected function createMassActivity($activity_params = array()) {
     if (!empty($this->contact_ids)) {
       $activity = civicrm_api3('Activity', 'create', $activity_params);
       $contact_id_list = implode(',', $this->contact_ids);
@@ -103,6 +104,7 @@ abstract class CRM_Customexport_Base {
    * Upload the given file using method (default sftp)
    *
    * @param string $method
+   * @return bool
    */
   protected function upload() {
     // Check if any data was found
@@ -116,15 +118,16 @@ abstract class CRM_Customexport_Base {
     $errorCode = $uploader->upload();
     $this->exportFile['uploadErrorCode'] = $errorCode;
     if (!empty($errorCode)) {
+      // Upload failed
       $this->exportFile['uploadError'] = TRUE;
       $this->exportFile['uploadErrorMessage'] = $uploader->getErrorMessage();
+      return FALSE;
     }
-    else {
-      // Delete the local copy of the csv file
-      unlink($this->exportFile['outfile']);
-      $this->exportFile['uploadError'] = FALSE;
-      $this->exportFile['uploadErrorMessage'] = NULL;
-    }
+
+    // Delete the local copy of the csv file
+    unlink($this->exportFile['outfile']);
+    $this->exportFile['uploadError'] = FALSE;
+    $this->exportFile['uploadErrorMessage'] = NULL;
     return TRUE;
   }
 
@@ -154,7 +157,10 @@ abstract class CRM_Customexport_Base {
 
     $this->exportToCSV();
     // Once all batches exported:
-    if ($this->upload()) {
+    if ($this->upload() && !empty($this->params['create_activity'])) {
+      $this->createMassActivity();
+    }
+    if ($this->exportFile['hasContent']) {
       $return['is_error'] = $this->exportFile['uploadError'];
       $return['message'] = $this->exportFile['uploadErrorMessage'];
       $return['error_code'] = $this->exportFile['uploadErrorCode'];

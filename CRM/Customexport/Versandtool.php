@@ -22,10 +22,27 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
     };
 
     $this->getLocalFilePath();
+
+    // params override setting, if param not specified read the setting
+    if (!isset($params['create_activity'])) {
+      $params['create_activity'] = CRM_Customexport_Utils::getSettings('versandtool_create_export_activity');
+    }
+    if (!isset($params['export_activity_subject'])) {
+      $params['export_activity_subject'] = CRM_Customexport_Utils::getSettings('versandtool_export_activity_subject');
+    }
   }
 
-  public function export() {
-    return parent::export();
+  public function createMassActivity($activity_params = array()) {
+    $activity_params = array(
+      'status_id'        => 'Completed',
+      'activity_type_id' => 'Action',
+      'subject'          => $this->params['export_activity_subject']);
+
+    try {
+      $this->createMassActivity($activity_params);
+    } catch (Exception $e) {
+      error_log("Problem creating activity: " . $e->getMessage());
+    }
   }
 
   /**
