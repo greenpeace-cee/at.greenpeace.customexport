@@ -53,10 +53,11 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
 
   /**
    * The keys we need in the csv export.  These MUST exist in the sql select
+   * "contact_id" field must exist for export activities to be created
    * @return array
    */
   function keys() {
-    return array('Contact_Hash', 'Email', 'Salutation', 'Firstname', 'Lastname', 'Birthday', 'Title', 'ZIP', 'City', 'Country', 'Address', 'Contact_ID',
+    return array('Contact_Hash', 'Email', 'Salutation', 'Firstname', 'Lastname', 'Birthday', 'Title', 'ZIP', 'City', 'Country', 'Address', 'contact_id',
 	    'Telephone', 'PersonID_IMB', 'Package_id', 'Segment_id', 'Community_NL', 'Donation_Info', 'Campaign_Topic', 'Petition');
   }
 
@@ -111,7 +112,7 @@ SELECT 	c.hash 				AS Contact_Hash
 	, address.city 			AS City
 	, ctry.iso_code 		AS Country
 	, address.street_address AS Address
-	, c.id 					AS Contact_ID
+	, c.id 					AS contact_id
 	, phone.phone			AS Telephone 
 	, c.external_identifier AS PersonID_IMB
 	, NULL					AS Package_id 

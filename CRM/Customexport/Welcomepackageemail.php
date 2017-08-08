@@ -64,6 +64,7 @@ class CRM_Customexport_WelcomepackageEmail extends CRM_Customexport_Base {
 
   /**
    * The keys we need in the csv export.  These MUST exist in the sql select (sqlFinalSelect)
+   * "contact_id" field must exist for export activities to be created
    * @return array
    */
   function keys() {

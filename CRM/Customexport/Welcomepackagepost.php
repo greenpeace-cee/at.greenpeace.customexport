@@ -63,10 +63,11 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
 
   /**
    * The keys we need in the csv export.  These MUST exist in the sql select
+   * "contact_id" field must exist for export activities to be created
    * @return array
    */
   function keys() {
-    return array("id", "titel", "anrede", "vorname", "nachname", "co", "strasse", "plz", "ort", "postfach", "land", "kundennummer", "vertragstyp");
+    return array("contact_id", "titel", "anrede", "vorname", "nachname", "co", "strasse", "plz", "ort", "postfach", "land", "kundennummer", "vertragstyp");
   }
 
   function sqlFinalSelect() {
@@ -81,7 +82,7 @@ SET @CiviCampaignID:= (SELECT id FROM civicrm_campaign
 
 #Output for CSV File
 #id, titel, anrede, vorname, nachname, co, strasse, plz, ort, postfach, land, kundennummer, vertragstyp 
-SELECT 	w.contact_id 			AS id
+SELECT 	w.contact_id 			AS contact_id
 		,formal_title 			AS titel     
 		, v.label 				AS anrede     
         , c.first_name 			AS vorname
