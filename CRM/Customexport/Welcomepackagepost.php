@@ -79,7 +79,7 @@ SET @CiviCampaignID:= (SELECT id FROM civicrm_campaign
     WHERE external_identifier='{$this->campaignExternalIdentifier}');
 
 #Output for CSV File
-#id, titel, anrede, vorname, nachname, co, strasse, plz, ort, postfach, land, kundennummer 
+#id, titel, anrede, vorname, nachname, co, strasse, plz, ort, postfach, land, kundennummer, vertragstyp 
 SELECT 	w.contact_id 			AS id
 		,formal_title 			AS titel     
 		, v.label 				AS anrede     
@@ -253,6 +253,10 @@ SELECT contact_id
 	, GROUP_CONCAT(DISTINCT mt.name ORDER BY mt.name SEPARATOR ', ') AS membership_type
 FROM civicrm_membership as m
 left join civicrm_membership_type as mt on mt.id=m.membership_type_id
+LEFT JOIN civicrm_membership_status AS ms ON m.status_id=ms.id
+LEFT JOIN civicrm_value_membership_payment AS mp ON mp.entity_id=m.id
+LEFT JOIN civicrm_option_value v ON v.value=mp.payment_instrument AND v.option_group_id=(SELECT id FROM civicrm_option_group WHERE name ='payment_instrument')
+WHERE ms.label IN ('Current','Paused') AND v.name IN ('RCUR','FRST')  AND join_date >= (NOW() - INTERVAL 6 MONTH) AND join_date < (NOW() - INTERVAL 2 DAY)
 group by contact_id
 ;
     "; // DO NOT REMOVE (end of SQL statements)
