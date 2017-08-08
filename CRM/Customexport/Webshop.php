@@ -312,7 +312,7 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
 
       parent::createMassActivity($activity_params);
     } catch (Exception $e) {
-      error_log("Problem creating activity: " . $e->getMessage());
+      CRM_Core_Error::debug_log_message('Customexport - Problem creating activity: ' . $e->getMessage());
     }
   }
 }
