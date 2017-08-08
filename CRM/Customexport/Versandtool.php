@@ -45,7 +45,7 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
       'subject'          => $this->params['export_activity_subject']);
 
     try {
-      $this->createMassActivity($activity_params);
+      parent::createMassActivity($activity_params);
     } catch (Exception $e) {
       error_log("Problem creating activity: " . $e->getMessage());
     }

@@ -310,7 +310,7 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
         'subject'          => $this->params['export_activity_subject'],
         'campaign_id'      => $campaign['id']);
 
-      $this->createMassActivity($activity_params);
+      parent::createMassActivity($activity_params);
     } catch (Exception $e) {
       error_log("Problem creating activity: " . $e->getMessage());
     }

@@ -55,7 +55,7 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
         $activity_params['campaign_id'] = $campaign['id'];
       }
 
-      $this->createMassActivity($activity_params);
+      parent::createMassActivity($activity_params);
     } catch (Exception $e) {
       error_log("Problem creating activity: " . $e->getMessage());
     }
