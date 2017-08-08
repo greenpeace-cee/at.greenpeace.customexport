@@ -32,6 +32,10 @@ class CRM_Customexport_Versandtool extends CRM_Customexport_Base {
     }
   }
 
+  function export() {
+    return parent::export();
+  }
+
   public function createMassActivity($activity_params = array()) {
     $activity_params = array(
       'status_id'        => 'Completed',
