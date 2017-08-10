@@ -56,7 +56,7 @@ class CRM_Customexport_Upload {
    * @param $fullURI = TRUE.  If TRUE, full URI must be passed in via $host (eg. sftp://user:pass@example.com/dir1/).  Optionally specify filename too, or specify this in $path
    * @param $path
    */
-  function setServer($host, $fullURI = TRUE, $path) {
+  function setServer($host, $fullURI = TRUE, $path = '') {
     if (!$fullURI) {
       // Prefix host with uri.
       if (strpos($host, '://') === FALSE) {
