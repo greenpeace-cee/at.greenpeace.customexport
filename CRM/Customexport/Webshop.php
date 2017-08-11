@@ -134,7 +134,7 @@ class CRM_Customexport_Webshop extends CRM_Customexport_Base {
     // Load and cache all contact IDs before we export, so we don't do multiple lookups for the same contact.
     $sourceContacts = array();
     foreach($this->_activities as $id => $activity) {
-      if (!array_key_exists($sourceContacts[$activity['source_contact_id']])) {
+      if (!array_key_exists($activity['source_contact_id'], $sourceContacts)) {
         $sourceContacts[$activity['source_contact_id']] = civicrm_api3('Contact', 'getsingle', array('id' => $activity['source_contact_id']));
       }
     }

@@ -61,6 +61,10 @@ abstract class CRM_Customexport_Base {
    * Export the lines array to csv file
    */
   protected function exportToCSV() {
+    if (empty($this->exportLines)) {
+      return;
+    }
+
     $fp = fopen($this->exportFile['outfile'], 'w');
     foreach($this->exportLines as $id => $line) {
 
