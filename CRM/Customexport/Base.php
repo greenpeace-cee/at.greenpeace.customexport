@@ -173,6 +173,7 @@ abstract class CRM_Customexport_Base {
     else {
       $return['is_error'] = TRUE;
       $return['message'] = 'No data available for upload';
+      $return['error_code'] = 1;
       $return['values'] = NULL;
     }
     return $return;
