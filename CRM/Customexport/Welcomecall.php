@@ -104,6 +104,7 @@ class CRM_Customexport_Welcomecall extends CRM_Customexport_Base {
       AND c.is_deleted=0
       AND c.do_not_phone=0
             AND DAY(NOW()) NOT IN (2,9,16,24)
+
     );
 
   ALTER TABLE temp_welcome ADD INDEX (contact_id, membership_id);
@@ -141,27 +142,27 @@ class CRM_Customexport_Welcomecall extends CRM_Customexport_Base {
   INNER JOIN civicrm_activity_contact ac      ON w.contact_id=ac.contact_id
   INNER JOIN civicrm_activity     a       ON a.id=ac.activity_id AND a.campaign_id IN (SELECT id FROM civicrm_campaign WHERE external_identifier='AKTION-7571' OR title = 'Welcome Calls')
   INNER JOIN civicrm_option_value   a_status  ON a_status.value=a.status_id    AND a_status.option_group_id= (SELECT id FROM civicrm_option_group WHERE name ='activity_status')
-                                           AND a_status.label in ('Completed','Scheduled')
+                                           AND a_status.label IN ('Completed','Scheduled')
   LEFT JOIN civicrm_value_activity_tmresponses tm ON tm.entity_id=a.id
   LEFT JOIN civicrm_option_value    v_tm    ON v_tm.value=tm.response     AND v_tm.option_group_id= (SELECT id FROM civicrm_option_group WHERE name ='response')
     WHERE record_type_id=3
     AND (
-        (a_status.label ='Scheduled'
-                )
+        a_status.label ='Scheduled'
         OR
-        (a_status.label ='Completed' AND (v_tm.label NOT IN
+                (a_status.label ='Completed' AND v_tm.label NOT IN
                           ('90 kein Anschluss'
                           ,'91 nicht erreicht'
                           ,'92 Anrufsperre kein Kontakt'
-                          ,'93 nicht angegriffen'))
-        )
-        OR
-        (a_status.label ='Completed' AND (a.subject NOT IN
+                          ,'93 nicht angegriffen')
+
+                      AND a.subject NOT IN
                           ('90 kein Anschluss'
                           ,'91 nicht erreicht'
                           ,'92 Anrufsperre kein Kontakt'
-                          ,'93 nicht angegriffen'))
+                          ,'93 nicht angegriffen')
         )
+
+
             )
   ;
 
