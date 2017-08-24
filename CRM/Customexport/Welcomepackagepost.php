@@ -78,10 +78,10 @@ class CRM_Customexport_WelcomepackagePost extends CRM_Customexport_Base {
 
 #Campaign Id for Kundennummer
 SET @CiviCampaignID:= (SELECT id FROM civicrm_campaign
-    WHERE external_identifier='{$this->campaignExternalIdentifier}');
-
+    WHERE external_identifier='AKTION-7767');
+    
 #Output for CSV File
-#id, titel, anrede, vorname, nachname, co, strasse, plz, ort, postfach, land, kundennummer, vertragstyp 
+#\"id\", \"titel\", \"anrede\", \"vorname\", \"nachname\", \"co\", \"strasse\", \"plz\", \"ort\", \"postfach\", \"land\", \"kundennummer\" 
 SELECT 	w.contact_id 			AS contact_id
 		,formal_title 			AS titel     
 		, v.label 				AS anrede     
@@ -117,103 +117,14 @@ FROM temp_welcome w
   function sql() {
     // Start of sql statements
     return "
-# *******#
-#   OUT  #
-# *******#
-
-#Create basis table of contacts with first reduction:
-#OUT: deceased, deleted, do not mail, not AT, empty address, Retourenzähler >=2
+#Create basis table of contacts 
+#IN:  new contracts:
 DROP TABLE IF EXISTS temp_welcome;
 CREATE TEMPORARY TABLE IF NOT EXISTS temp_welcome AS 
 	(
-	SELECT DISTINCT c.id AS contact_id
-        , 0 AS keep_contact
-	FROM civicrm_contact c
-		LEFT JOIN civicrm_address address 		ON address.contact_id=c.id AND is_primary=1 #NUR PRIMARY
-		LEFT JOIN civicrm_value_address_statistics address_stat ON address_stat.entity_id=address.id 
-		LEFT JOIN civicrm_country ctry 			ON address.country_id=ctry.id
-	WHERE 
-			#nicht verstorben und nicht gelöscht
-			c.is_deceased=0 AND c.is_deleted=0  	
-		
-			#Post erwünscht
-		AND c.do_not_mail=0 
-        
-			#österr. Adresse
-        AND ctry.iso_code='AT' 
-        
-			#hat vollständige Adresse (Straße/PLZ/Stadt)
-        AND address.street_address IS NOT NULL  AND address.postal_code IS NOT NULL AND address.city IS NOT NULL 
-        
-			#Retourenzähler kleiner 2
-        AND address_stat.rts_counter <2  	 
-        
-        
-    );
-
-ALTER TABLE temp_welcome ADD PRIMARY KEY (contact_id);
-
-#Table with all contacts, which should not receive any welcome mail
-DROP TABLE IF EXISTS temp_welcome_delete;
-CREATE TEMPORARY TABLE IF NOT EXISTS temp_welcome_delete AS 
-	(
 	SELECT DISTINCT contact_id
-    FROM (	
-			#OUT: inaktiv, VIP, Firma, Schule 
-			SELECT DISTINCT et.entity_id AS contact_id
-			FROM civicrm_entity_tag et 		
-			LEFT JOIN civicrm_tag ct ON et.tag_id=ct.id 
-			WHERE et.entity_table = 'civicrm_contact' AND ct.name IN ('inaktiv','VIP','Firma','Schule') 
-			
-			UNION ALL
-            
-			#OUT: Erblasser
-			SELECT DISTINCT group_c.contact_id
-			FROM civicrm_group_contact group_c 
-			LEFT JOIN civicrm_group g ON g.id=group_c.group_id
-			WHERE g.title='Erblasser'
-			
-			UNION ALL
-			
-            #OUT: Major Donors
-			SELECT cb.contact_id
-			FROM civicrm_contribution AS cb 
-			WHERE receive_date >= NOW() - INTERVAL 1 YEAR
-			GROUP BY cb.contact_id
-			HAVING SUM(cb.total_amount)>=1000
-            
-            UNION ALL
-            
-            #OUT: Mailhistory in last 6 Months
-            SELECT ac.contact_id 
-			FROM civicrm_activity AS activity
-			LEFT JOIN civicrm_activity_contact AS ac ON ac.activity_id=activity.id
-			LEFT JOIN civicrm_campaign AS campaign ON campaign.id=activity.campaign_id
-			WHERE campaign.external_identifier='AKTION-7767' AND activity_date_time >= NOW()-INTERVAL 6 MONTH
-            
-            
-		) AS delete_multiple_contacts
-    );
-    
-ALTER TABLE temp_welcome_delete ADD PRIMARY KEY (contact_id);
-
-#Delete all contacts from the welcome-list which were collected in the delete-table    
-DELETE
-FROM temp_welcome 
-WHERE keep_contact=0 AND contact_id IN (SELECT contact_id FROM temp_welcome_delete)
-;
-
-# *******#
-#   IN   #
-# *******#
-
-#Table with all contacts, that have to be kept and should receive a welcome mail
-#IN: Membership Current/ Paused, Sepa RCUR / FRST, join date in last 6 months
-DROP TABLE IF EXISTS temp_welcome_keep;
-CREATE TEMPORARY TABLE IF NOT EXISTS temp_welcome_keep AS 
-	(
-    SELECT DISTINCT contact_id
-	FROM civicrm_membership AS m
+        , 0 AS keep_contact
+ 	FROM civicrm_membership AS m
 	LEFT JOIN civicrm_membership_status AS ms ON m.status_id=ms.id
 	LEFT JOIN civicrm_value_membership_payment AS mp ON mp.entity_id=m.id
 	LEFT JOIN civicrm_option_value v ON v.value=mp.payment_instrument AND v.option_group_id=(SELECT id FROM civicrm_option_group WHERE name ='payment_instrument')
@@ -225,24 +136,110 @@ CREATE TEMPORARY TABLE IF NOT EXISTS temp_welcome_keep AS
         AND v.name IN ('RCUR','FRST')  
         
 			#join_date innerhalbt der letzten 6 Monate und vorgestern
-        AND join_date >= (NOW() - INTERVAL 6 MONTH) AND join_date < (NOW() - INTERVAL 2 DAY)
-    );
+        AND join_date >= (NOW() - INTERVAL 6 MONTH) AND join_date < (NOW() - INTERVAL 2 DAY)        
+        #AND contact_id=19837
+        
+      );      
+
+ALTER TABLE temp_welcome ADD primary key (contact_id);   
+
+#OUT: deceased, deleted, do not mail, not AT, empty address, Retourenzähler >=2
+	DROP TABLE IF EXISTS temp_welcome_delete_contacts;
+	CREATE TEMPORARY TABLE IF NOT EXISTS temp_welcome_delete_contacts AS 
+		(
+ 			SELECT DISTINCT w.contact_id
+			FROM temp_welcome  					w
+				INNER JOIN civicrm_contact			c on w.contact_id=c.id 
+				LEFT JOIN civicrm_address address 		ON address.contact_id=c.id AND is_primary=1 #NUR PRIMARY
+				LEFT JOIN civicrm_value_address_statistics address_stat ON address_stat.entity_id=address.id 
+				LEFT JOIN civicrm_country ctry 			ON address.country_id=ctry.id
+
+			WHERE c.is_deleted=1
+					OR c.is_deceased=1 
+					OR c.do_not_mail=1 
+                    OR ctry.iso_code<>'AT' 
+					OR address.street_address IS NULL  
+                    OR address.postal_code IS NULL 
+                    OR address.city IS NULL 
+					OR address_stat.rts_counter >=2  	
+                    OR c.contact_type='Organization'
+                    OR (c.contact_type='Individual' AND first_name IS NULL)
+                    Or (c.contact_type='Individual' AND last_name is null)
+					Or (c.contact_type='Household' AND household_name is null)
+        )
+;	
+    ALTER TABLE temp_welcome_delete_contacts ADD primary key (contact_id);	
     
-ALTER TABLE temp_welcome_keep ADD PRIMARY KEY (contact_id);
+	DELETE
+	FROM temp_welcome 
+	WHERE keep_contact=0 AND contact_id IN (SELECT contact_id FROM temp_welcome_delete_contacts)
+;
+   	DELETE FROM temp_welcome_delete_contacts; 
 
-#Mark the contacts, which should definetly be on the welcome list
-UPDATE temp_welcome 
-SET  keep_contact=1
-WHERE contact_id IN (SELECT contact_id FROM temp_welcome_keep);
 
-# *******#
-#   OUT  #
-# *******#
+#OUT: inaktiv, VIP, Firma, Schule 
+	INSERT INTO temp_welcome_delete_contacts
+	SELECT DISTINCT  w.contact_id
+	FROM temp_welcome  					w
+		INNER JOIN civicrm_entity_tag et on w.contact_id=et.entity_id and et.entity_table ='civicrm_contact' 		
+		INNER JOIN civicrm_tag ct ON et.tag_id=ct.id AND ct.name IN ('inaktiv','VIP','Firma','Schule') 
+;
+	DELETE
+	FROM temp_welcome 
+	WHERE keep_contact=0 AND contact_id IN (SELECT contact_id FROM temp_welcome_delete_contacts)
+;
+   	DELETE FROM temp_welcome_delete_contacts
+; 
+            
+#OUT: erblasser
+	INSERT INTO temp_welcome_delete_contacts
+	SELECT DISTINCT w.contact_id
+	FROM temp_welcome  	w
+		INNER JOIN  civicrm_group_contact group_c ON group_c.contact_id=w.contact_id
+		INNER JOIN civicrm_group g ON g.id=group_c.group_id AND g.title='Erblasser'
+;
+	DELETE
+	FROM temp_welcome 
+	WHERE keep_contact=0 AND contact_id IN (SELECT contact_id FROM temp_welcome_delete_contacts)
+;
+   	DELETE FROM temp_welcome_delete_contacts
+;    
 
-#Final delete of all contacts, which are not marked to be kept
-DELETE
-FROM temp_welcome 
-WHERE keep_contact=0;
+#OUT: MajorDonor
+	INSERT INTO temp_welcome_delete_contacts
+	SELECT cb.contact_id
+	FROM temp_welcome w 
+	INNER JOIN civicrm_contribution  	cb ON cb.contact_id=w.contact_id
+	INNER JOIN civicrm_option_value 	v  ON cb.contribution_status_id=v.value AND option_group_id= (SELECT id FROM civicrm_option_group WHERE name ='contribution_status') 
+																				   AND v.label='Completed'
+	WHERE receive_date >= NOW() - INTERVAL 1 YEAR
+	GROUP BY cb.contact_id
+	HAVING SUM(cb.total_amount)>=1000
+;
+	DELETE
+	FROM temp_welcome 
+	WHERE keep_contact=0 AND contact_id IN (SELECT contact_id FROM temp_welcome_delete_contacts)
+;
+   	DELETE FROM temp_welcome_delete_contacts
+;
+
+#OUT: Mailhistory in last 6 Months
+	INSERT INTO temp_welcome_delete_contacts
+	SELECT distinct ac.contact_id 
+	FROM temp_welcome w 
+	INNER JOIN civicrm_activity_contact  ac 		ON ac.contact_id=w.contact_id		AND record_type_id=3 
+	INNER JOIN civicrm_activity  		activity 	ON ac.activity_id=activity.id		AND activity_date_time >= NOW()-INTERVAL 6 MONTH 
+	INNER JOIN civicrm_campaign 		campaign	ON campaign.id=activity.campaign_id AND campaign.external_identifier='AKTION-7767' 
+	INNER JOIN civicrm_option_value 	a_status 	ON a_status.value=activity.status_id 	 	AND a_status.option_group_id= (SELECT id FROM civicrm_option_group WHERE name ='activity_status') 
+																						AND a_status.label='Completed'
+	 
+;
+	DELETE
+	FROM temp_welcome 
+	WHERE keep_contact=0 AND contact_id IN (SELECT contact_id FROM temp_welcome_delete_contacts)
+;
+   	DELETE FROM temp_welcome_delete_contacts
+;
 
 
 #Add Information for membership types - Collect all membership types belonging to one contact
@@ -251,15 +248,16 @@ CREATE TEMPORARY TABLE IF NOT EXISTS temp_membershiptypes
 	(contact_id 			INT(10) 	PRIMARY KEY
 	, membership_type 		VARCHAR(10000)
     )
-SELECT contact_id 
-	, GROUP_CONCAT(DISTINCT mt.name ORDER BY mt.name SEPARATOR ', ') AS membership_type
-FROM civicrm_membership as m
-left join civicrm_membership_type as mt on mt.id=m.membership_type_id
-LEFT JOIN civicrm_membership_status AS ms ON m.status_id=ms.id
-LEFT JOIN civicrm_value_membership_payment AS mp ON mp.entity_id=m.id
-LEFT JOIN civicrm_option_value v ON v.value=mp.payment_instrument AND v.option_group_id=(SELECT id FROM civicrm_option_group WHERE name ='payment_instrument')
-WHERE ms.label IN ('Current','Paused') AND v.name IN ('RCUR','FRST')  AND join_date >= (NOW() - INTERVAL 6 MONTH) AND join_date < (NOW() - INTERVAL 2 DAY)
-group by contact_id
+	SELECT w.contact_id 
+		, GROUP_CONCAT(DISTINCT mt.name ORDER BY mt.name SEPARATOR ', ') AS membership_type
+	FROM temp_welcome w
+	INNER JOIN civicrm_membership m ON w.contact_id=m.contact_id AND join_date >= (NOW() - INTERVAL 6 MONTH) AND join_date < (NOW() - INTERVAL 2 DAY)
+	INNER join civicrm_membership_type as mt on mt.id=m.membership_type_id
+	INNER JOIN civicrm_membership_status AS ms ON m.status_id=ms.id aND ms.label IN ('Current','Paused')
+	INNER JOIN civicrm_value_membership_payment AS mp ON mp.entity_id=m.id
+	INNER JOIN civicrm_option_value v ON v.value=mp.payment_instrument AND v.option_group_id=(SELECT id FROM civicrm_option_group WHERE name ='payment_instrument')
+																		AND v.name IN ('RCUR','FRST')
+	group by contact_id
 ;
     "; // DO NOT REMOVE (end of SQL statements)
   }
