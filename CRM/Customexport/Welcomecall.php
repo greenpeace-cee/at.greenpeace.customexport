@@ -146,24 +146,7 @@ class CRM_Customexport_Welcomecall extends CRM_Customexport_Base {
   LEFT JOIN civicrm_value_activity_tmresponses tm ON tm.entity_id=a.id
   LEFT JOIN civicrm_option_value    v_tm    ON v_tm.value=tm.response     AND v_tm.option_group_id= (SELECT id FROM civicrm_option_group WHERE name ='response')
     WHERE record_type_id=3
-    AND (
-        a_status.label ='Scheduled'
-        OR
-                (a_status.label ='Completed' AND v_tm.label NOT IN
-                          ('90 kein Anschluss'
-                          ,'91 nicht erreicht'
-                          ,'92 Anrufsperre kein Kontakt'
-                          ,'93 nicht angegriffen')
-
-                      AND a.subject NOT IN
-                          ('90 kein Anschluss'
-                          ,'91 nicht erreicht'
-                          ,'92 Anrufsperre kein Kontakt'
-                          ,'93 nicht angegriffen')
-        )
-
-
-            )
+    AND a_status.label in ('Scheduled','Completed' )
   ;
 
     #OUT: hatte eine Activity in TM Root Campaign in letzten 3 Monaten
@@ -182,17 +165,7 @@ class CRM_Customexport_Welcomecall extends CRM_Customexport_Base {
   LEFT JOIN civicrm_option_value    v_tm    ON v_tm.value=tm.response     AND v_tm.option_group_id= (SELECT id FROM civicrm_option_group WHERE name ='response')
 
   WHERE (ca.name='TM' OR parent1.name='TM' OR parent2.name='TM' OR parent3.name='TM' )
-    AND (
-        (v_tm.label NOT IN ('90 kein Anschluss'
-                  ,'91 nicht erreicht'
-                  ,'92 Anrufsperre kein Kontakt'
-                  ,'93 nicht angegriffen'))
-      OR
-        ( a.subject NOT IN  ('90 kein Anschluss'
-                  ,'91 nicht erreicht'
-                  ,'92 Anrufsperre kein Kontakt'
-                  ,'93 nicht angegriffen'))
-      )
+
 
   ;
 
